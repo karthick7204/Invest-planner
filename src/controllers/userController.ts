@@ -21,7 +21,6 @@ export const login = async(req :Request,res : Response)=>{ //login function
      if(!userdata){
         return res.status(404).json({message:"user not found"})
      }
-
      let token;
      try{
       token=jwt.sign(
