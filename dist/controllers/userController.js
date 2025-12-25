@@ -21,9 +21,9 @@ export const login = async (req, res) => {
         let token;
         try {
             token = jwt.sign({
-                userid: userdata.id,
+                userId: userdata._id,
                 email: userdata.email,
-            }, "secretkey", { expiresIn: "1hr" });
+            }, process.env.JWT_SECRET, { expiresIn: "1h" });
         }
         catch (err) {
             console.log(err);
@@ -35,6 +35,7 @@ export const login = async (req, res) => {
             } });
     }
     catch (error) {
+        console.log("usercontroller error");
         res.status(500).json({ error: "internal error" });
     }
 };

@@ -1,20 +1,20 @@
 import { expense } from '../models/expenseModel.js'
-import {Request , Response} from 'express'
-import { tokenauth } from '../middleware/authenticationToken.js';
-import  dotenv  from 'dotenv';
-import jwt from 'jsonwebtoken'
+import {  Response} from 'express'
+import { authRequest } from '../middleware/authentication.js';
 
 const secretkey = process.env.JWT_SECRET 
 
-export const createExpense = async (req: Request , res:Response)=>{
+export const createExpense = async (req: authRequest , res:Response , )=>{
+    const Userid = req.userId
     try{
-        const expensedata = new expense(req.body);
+        const expensedata = new expense(...req.body, Userid);
         const savedExpenseData = await expensedata.save();
-       
-       tokenauth(secretkey);
-        res.status(200).json(savedExpenseData)
+
+        res.status(200).json({Userid,savedExpenseData})
         
     }catch(error){
+        console.log("expense controller not wokring ")
         res.status(500).send("internal error")
     }
 }
+ 

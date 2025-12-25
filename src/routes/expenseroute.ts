@@ -1,6 +1,7 @@
 import {Router} from 'express'
 import { createExpense } from '../controllers/expenseController.js';
+import { verifyToken } from '../middleware/authentication.js';
 export const expenserouter = Router();
 
-expenserouter.put('/create',createExpense)
+expenserouter.post('/create',verifyToken,createExpense)
 

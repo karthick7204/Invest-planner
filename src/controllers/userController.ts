@@ -25,11 +25,12 @@ export const login = async(req :Request,res : Response)=>{ //login function
      try{
       token=jwt.sign(
          {
-           userid: userdata.id,
+           userId: userdata._id,
            email:userdata.email,
          },
-         "secretkey",
-         {expiresIn:"1hr"}
+         process.env.JWT_SECRET as string,
+         
+         {expiresIn:"1h"}
       )
      }catch(err){
       console.log(err);
@@ -43,6 +44,7 @@ export const login = async(req :Request,res : Response)=>{ //login function
     
    }
    catch(error){
+      console.log("usercontroller error")
       res.status(500).json({error:"internal error"})
    }
 }

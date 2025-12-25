@@ -1,19 +1,19 @@
 import mongoose from 'mongoose';
 export declare const expense: mongoose.Model<{
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
 } & mongoose.DefaultTimestampProps, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
 } & mongoose.DefaultTimestampProps, {
     id: string;
@@ -21,10 +21,10 @@ export declare const expense: mongoose.Model<{
     timestamps: true;
 }> & Omit<{
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
@@ -36,17 +36,17 @@ export declare const expense: mongoose.Model<{
     timestamps: true;
 }, {
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
 } & mongoose.DefaultTimestampProps, mongoose.Document<unknown, {}, {
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
 } & mongoose.DefaultTimestampProps, {
     id: string;
@@ -54,10 +54,10 @@ export declare const expense: mongoose.Model<{
     timestamps: true;
 }>> & Omit<{
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
@@ -70,10 +70,10 @@ export declare const expense: mongoose.Model<{
 } | {
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
         user: mongoose.Types.ObjectId;
+        purpose: string;
+        amount: number;
+        category: string;
         date?: number | null;
-        purpose?: string | null;
-        amount?: number | null;
-        category?: string | null;
         time?: number | null;
     } & mongoose.DefaultTimestampProps, {
         id: string;
@@ -81,10 +81,10 @@ export declare const expense: mongoose.Model<{
         timestamps: true;
     }>> & Omit<{
         user: mongoose.Types.ObjectId;
+        purpose: string;
+        amount: number;
+        category: string;
         date?: number | null;
-        purpose?: string | null;
-        amount?: number | null;
-        category?: string | null;
         time?: number | null;
     } & mongoose.DefaultTimestampProps & {
         _id: mongoose.Types.ObjectId;
@@ -95,10 +95,10 @@ export declare const expense: mongoose.Model<{
     }> | undefined;
 }, {
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
     createdAt: NativeDate;
     updatedAt: NativeDate;
@@ -108,10 +108,10 @@ export declare const expense: mongoose.Model<{
     __v: number;
 }>, {
     user: mongoose.Types.ObjectId;
+    purpose: string;
+    amount: number;
+    category: string;
     date?: number | null;
-    purpose?: string | null;
-    amount?: number | null;
-    category?: string | null;
     time?: number | null;
     createdAt: NativeDate;
     updatedAt: NativeDate;
