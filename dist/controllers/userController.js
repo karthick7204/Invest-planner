@@ -36,7 +36,7 @@ export const login = async (req, res) => {
     }
     catch (error) {
         console.log("usercontroller error");
-        res.status(500).json({ error: "internal error" });
+        res.status(500).json({ error: "internal error " });
     }
 };
 export const updateusername = async (req, res) => {
