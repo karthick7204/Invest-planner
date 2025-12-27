@@ -18,6 +18,7 @@ app.use('/api',router)
 
 app.use('/expense',expenserouter) 
 
+
 mongoose.connect(MONGOURL).then(()=>{
     console.log("mongodb connection successfull")
 }).catch((error)=>{

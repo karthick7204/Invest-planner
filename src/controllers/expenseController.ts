@@ -15,4 +15,6 @@ export const createExpense = async (req: authRequest , res:Response  )=>{
         res.status(500).send("internal error-expensecontrol")
     }
 }
+
+
  
