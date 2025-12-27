@@ -2,13 +2,13 @@ import mongoose from "mongoose"
 
 const incomeSchema = new mongoose.Schema({
     user: {
-       type: mongoose.Schema.Types.ObjectId,
+       type:String,
        ref:"User",
-       Required:true
+       required:true
     },
     income: {
         type:Number,
-        Required:true
+        required:true
     }
 })
 export const income = mongoose.model("income",incomeSchema)
