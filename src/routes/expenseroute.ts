@@ -10,5 +10,5 @@ expenserouter.post('/income',verifyToken,createincome)
 
 expenserouter.get('/income',verifyToken,getIncome)
 
-expenserouter.get('/income',verifyToken,totalIncome)
-+
+expenserouter.get('/totalincome',verifyToken,totalIncome)
+

@@ -6,6 +6,5 @@ export const expenserouter = Router();
 expenserouter.post('/create', verifyToken, createExpense);
 expenserouter.post('/income', verifyToken, createincome);
 expenserouter.get('/income', verifyToken, getIncome);
-expenserouter.get('/income', verifyToken, totalIncome)
-    + ;
+expenserouter.get('/totalincome', verifyToken, totalIncome);
 //# sourceMappingURL=expenseroute.js.map

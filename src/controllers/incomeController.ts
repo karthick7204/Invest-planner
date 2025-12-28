@@ -1,7 +1,7 @@
-import { income } from '../models/incomeModel.js'
 import { Response} from 'express'
 import { authRequest } from '../middleware/authentication.js';
-
+import { income } from '../models/incomeModel.js';
+import mongoose from 'mongoose';
 
 export const createincome = async(req:authRequest,res:Response)=>{
        let userId = req.userId
@@ -34,12 +34,34 @@ export const getIncome = async(req:authRequest,res:Response)=>{
    try{
         const incomedata = await income.find({user:userId});
         console.log("getIncome - found:", incomedata)
-        res.status(200).send({income:incomedata})          
+        res.status(200
+                  ).send({income:incomedata})          
    }catch(error){
+     console.log(error)
      return res.status(500).json({message:"error in getincome",error})
    }
 }
 
-export const totalIncome = async(req:authRequest,res:Response){
+export const totalIncome = async(req:authRequest,res:Response)=>{
+    const userId = req.userId
+    try{
+    const result = await income.aggregate([
+     {
+          $match:{
+               user:req.userId
+          }
+     },
+     {
+          $group:{
+               _id:null,
+               totalIncome:{$sum: "$income"}
+          }
+     }
+    ])
+    return res.status(200).json({
+               totalincome: result[0]?.totalIncome || 0})
+}catch(error){
+     return res.status(401).json({message:"error in totalincome"})
+}
     
 }

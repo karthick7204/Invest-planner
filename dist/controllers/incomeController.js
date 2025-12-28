@@ -30,9 +30,32 @@ export const getIncome = async (req, res) => {
         res.status(200).send({ income: incomedata });
     }
     catch (error) {
+        console.log(error);
         return res.status(500).json({ message: "error in getincome", error });
     }
 };
 export const totalIncome = async (req, res) => {
+    const userId = req.userId;
+    try {
+        const result = await income.aggregate([
+            {
+                $match: {
+                    user: req.userId
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalIncome: { $sum: "$income" }
+                }
+            }
+        ]);
+        return res.status(200).json({
+            totalincome: result[0]?.totalIncome || 0
+        });
+    }
+    catch (error) {
+        return res.status(401).json({ message: "error in totalincome" });
+    }
 };
 //# sourceMappingURL=incomeController.js.map
