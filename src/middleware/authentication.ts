@@ -1,11 +1,11 @@
 import jwt  from "jsonwebtoken";
 import {Request , Response,NextFunction} from 'express'
-
+import mongoose from "mongoose";
 interface jwtPayload{
-    userId : string
+    userId : string;
 }
 export interface authRequest extends Request{
-    userId ?: string
+    userId ?: string;
 }
 export const verifyToken = async(req:authRequest,res:Response,next:NextFunction)=>{
     

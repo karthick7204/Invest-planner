@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
 export declare const income: mongoose.Model<{
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 }, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 }, {
     id: string;
 }, mongoose.DefaultSchemaOptions> & Omit<{
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 } & {
     _id: mongoose.Types.ObjectId;
@@ -19,15 +19,15 @@ export declare const income: mongoose.Model<{
 }, "id"> & {
     id: string;
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, mongoose.DefaultSchemaOptions, {
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 }, mongoose.Document<unknown, {}, {
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 }, {
     id: string;
 }, mongoose.ResolveSchemaOptions<mongoose.DefaultSchemaOptions>> & Omit<{
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 } & {
     _id: mongoose.Types.ObjectId;
@@ -39,12 +39,12 @@ export declare const income: mongoose.Model<{
     [path: string]: mongoose.SchemaDefinitionProperty<undefined, any, any>;
 } | {
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
-        user: string;
+        user: mongoose.Types.ObjectId;
         income: number;
     }, {
         id: string;
     }, mongoose.ResolveSchemaOptions<mongoose.DefaultSchemaOptions>> & Omit<{
-        user: string;
+        user: mongoose.Types.ObjectId;
         income: number;
     } & {
         _id: mongoose.Types.ObjectId;
@@ -54,14 +54,14 @@ export declare const income: mongoose.Model<{
         id: string;
     }> | undefined;
 }, {
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 } & {
     _id: mongoose.Types.ObjectId;
 } & {
     __v: number;
 }>, {
-    user: string;
+    user: mongoose.Types.ObjectId;
     income: number;
 } & {
     _id: mongoose.Types.ObjectId;

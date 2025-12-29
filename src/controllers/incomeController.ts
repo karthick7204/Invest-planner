@@ -1,6 +1,7 @@
 import { Response} from 'express'
 import { authRequest } from '../middleware/authentication.js';
 import { income } from '../models/incomeModel.js';
+import { expense } from '../models/expenseModel.js';
 import mongoose from 'mongoose';
 
 export const createincome = async(req:authRequest,res:Response)=>{
@@ -43,25 +44,31 @@ export const getIncome = async(req:authRequest,res:Response)=>{
 }
 
 export const totalIncome = async(req:authRequest,res:Response)=>{
-    const userId = req.userId
-    try{
-    const result = await income.aggregate([
-     {
-          $match:{
-               user:req.userId
-          }
-     },
-     {
-          $group:{
-               _id:null,
-               totalIncome:{$sum: "$income"}
-          }
+     const userId = req.userId
+
+     if (!userId) {
+          return res.status(401).json({ message: "User not authenticated" })
      }
-    ])
-    return res.status(200).json({
-               totalincome: result[0]?.totalIncome || 0})
-}catch(error){
-     return res.status(401).json({message:"error in totalincome"})
+
+     if (!mongoose.Types.ObjectId.isValid(userId)) {
+          return res.status(400).json({ message: "Invalid user id" })
+     }
+
+     try{
+          const userObjectId = new mongoose.Types.ObjectId(userId)
+          const result = await income.aggregate([
+               {
+                    $match:{ user: userObjectId }
+               },
+               {
+                    $group:{ _id:null, total:{$sum: "$income"} }
+               }
+          ])
+
+          return res.status(200).json({ totalincome: result[0]?.total || 0 })
+     }catch(error){
+          console.log("totalIncome error", error)
+          return res.status(500).json({message:"error in totalincome", error})
+     }
 }
-    
-}
+
