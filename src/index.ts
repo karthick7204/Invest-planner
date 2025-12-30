@@ -1,7 +1,7 @@
 import express from 'express'
 import { router } from './routes/login.js';
 import { expenserouter } from './routes/expenseroute.js';
-
+import {investRouter} from './routes/investRoute.js'
 import { requestHandler } from './middleware/app.js';
 import bodyParser from 'body-parser';
 import  dotenv  from 'dotenv';
@@ -14,9 +14,10 @@ const port = process.env.PORT || 3000
 const MONGOURL : string   = process.env.MONGO_URL || " "
 
 app.use(requestHandler)
-app.use('/api',router) 
 
+app.use('/api',router) 
 app.use('/expense',expenserouter) 
+app.use('/invest',investRouter)
 
 
 mongoose.connect(MONGOURL).then(()=>{
