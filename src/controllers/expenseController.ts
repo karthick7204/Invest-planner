@@ -1,6 +1,7 @@
 import { expense } from '../models/expenseModel.js'
 import {  Response} from 'express'
 import { authRequest } from '../middleware/authentication.js';
+import {totalExpenseAmount} from '../service/totalExpense.js';
 import mongoose from 'mongoose'
 
 export const createExpense = async (req: authRequest , res:Response  )=>{
@@ -48,19 +49,11 @@ export const totalExpense = async(req:authRequest,res:Response)=>{
     }
 
     try{
-        const userObjectId = new mongoose.Types.ObjectId(userId)
-        const expenseResult = await expense.aggregate([
-            {
-                $match:{ user: userObjectId }
-            },
-            {
-                $group:{ _id:null, totalexpense:{$sum: "$amount"} }
-            }
-        ])
+        const expenseResult = await totalExpenseAmount(userId)
 
-        return res.status(200).json({totalexpense: expenseResult[0]?.totalexpense || 0})
+        return res.status(200).json({totalexpense: expenseResult})
     }catch(error){
         console.log("totalExpense error", error)
         return res.status(500).json({message:"error in totalExpense", error})
     }
-}
+}  
