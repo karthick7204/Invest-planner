@@ -29,7 +29,6 @@ export const getExpenses = async (req: authRequest, res: Response) => {
         }
             
         const items = await expense.find({ user: userId })
-        console.log("getExpenses - found items for this user:", items.length)
         return res.status(200).json({ expenses: items })
         
     } catch (error) {
