@@ -23,7 +23,6 @@ export const getExpenses = async (req, res) => {
             return res.status(401).json({ message: "User not authenticated" });
         }
         const items = await expense.find({ user: userId });
-        console.log("getExpenses - found items for this user:", items.length);
         return res.status(200).json({ expenses: items });
     }
     catch (error) {
