@@ -7,6 +7,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { savingsroute } from './routes/savingsroute.js';
+import { stocksRouter } from './routes/stocksRoute.js';
 const app = express();
 app.use(bodyParser.json());
 dotenv.config();
@@ -17,6 +18,7 @@ app.use('/api', router);
 app.use('/expense', expenserouter);
 app.use('/invest', investRouter);
 app.use('/target', savingsroute);
+app.use('/stocks', stocksRouter);
 mongoose.connect(MONGOURL).then(() => {
     console.log("mongodb connection successfull");
 }).catch((error) => {
