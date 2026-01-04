@@ -10,7 +10,7 @@ expenserouter.post('/income',verifyToken,createincome)
 
 expenserouter.get('/income',verifyToken,getIncome)
 
-expenserouter.get('/totalincome',verifyToken,totalIncome) // not wokrinhg as of now
+expenserouter.get('/totalincome',verifyToken,totalIncome) // not working as of now
 
 expenserouter.get('/totalexpense',verifyToken,totalExpense) // not working as of now
 
