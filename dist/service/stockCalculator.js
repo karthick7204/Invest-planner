@@ -1,7 +1,7 @@
-export const stockCalculator = (stocks) => {
+export const stockCalculator = (stocks, surplusamount) => {
     let suggestedStocks = [];
     for (const stock of stocks) {
-        if (stock.lastprice <= 1000) {
+        if (stock.lastprice <= surplusamount) {
             suggestedStocks.push({ symbol: stock.symbol, lastprice: stock.lastprice });
         }
     }

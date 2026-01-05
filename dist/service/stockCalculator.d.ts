@@ -1,4 +1,4 @@
-export declare const stockCalculator: (stocks: any) => {
+export declare const stockCalculator: (stocks: any, surplusamount: number) => {
     symbol: any;
     lastprice: any;
 }[];
