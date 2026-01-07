@@ -4,7 +4,7 @@ import { authRequest } from '../middleware/authentication.js';
 import {totalExpenseAmount} from '../service/totalExpense.js';
 import mongoose from 'mongoose'
 
-export const createExpense = async (req: authRequest , res:Response  )=>{
+export const createExpense = async (req: authRequest , res:Response  )=>{  //for creating expense
     const UserId = req.userId
     console.log("createExpense - UserId:", UserId)
     try{
@@ -20,7 +20,7 @@ export const createExpense = async (req: authRequest , res:Response  )=>{
     }
 }
 
-export const getExpenses = async (req: authRequest, res: Response) => {
+export const getExpenses = async (req: authRequest, res: Response) => { //for getting expenses
     const userId = req.userId
     console.log("getExpenses - searching for userId:", userId)
     try {
@@ -37,7 +37,7 @@ export const getExpenses = async (req: authRequest, res: Response) => {
     }
 }
 
-export const totalExpense = async(req:authRequest,res:Response)=>{
+export const totalExpense = async(req:authRequest,res:Response)=>{  //for total expense amount
     const userId = req.userId
     if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });

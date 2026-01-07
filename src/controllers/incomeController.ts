@@ -89,7 +89,7 @@ export const surplusIncome = async  (req:authRequest,res:Response)=>{
           return res.status(401).json({ message: "User not authenticated" })
      }
      try{
-          const Income_total = await totalIncomeAmount(userId)
+          const Income_total = await totalIncomeAmount(userId)  //these are service functions
           const Expense_total = await totalExpenseAmount(userId)
           const surplusamount = await surplus(Income_total,Expense_total) 
           return res.status(200).json({surplus: surplusamount})
