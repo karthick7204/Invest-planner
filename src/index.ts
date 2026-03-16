@@ -8,13 +8,14 @@ import  dotenv  from 'dotenv';
 import mongoose from 'mongoose';
 import { savingsroute } from './routes/savingsroute.js';
 import {stocksRouter } from './routes/stocksRoute.js';
+import cors from "cors";
 
 const app = express();
 app.use(bodyParser.json())
 dotenv.config()
 const port = process.env.PORT || 3000
 const MONGOURL : string   = process.env.MONGO_URL || " "
-
+app.use(cors());
 app.use(requestHandler)
 
 app.use('/api',router) 

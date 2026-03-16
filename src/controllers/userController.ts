@@ -5,10 +5,32 @@ import jwt from 'jsonwebtoken'
 export const createuser = async (req :Request ,res : Response)=>{  //user creation function
     try{
         const userdata = new user(req.body)
-        const saveduser = await userdata.save()
+      const saveduser = await userdata.save()
         console.log("it is wokring")
-        res.status(200).json({saveduser})
-    }catch(error){
+      if(!saveduser){
+      return res.status(404).json({message:"user not found"})
+    }
+     let token;
+     try{
+      token=jwt.sign(
+         {
+           userId: userdata._id,
+           email:userdata.email,
+         },
+         process.env.JWT_SECRET as string,
+         
+         {expiresIn:"1h"}
+      )
+     }catch(err){
+      console.log(err);
+         return res.status(500).json({message:"Error generating token"})
+     }
+           return res.status(200).json({message:"logged in sucessfully",
+         data: {saveduser,
+            token
+   }})
+    
+   }catch(error){
       res.status(500).json({message:"internal server error"})
     }
 }

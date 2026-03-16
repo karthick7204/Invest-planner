@@ -8,15 +8,40 @@ export const createExpense = async (req: authRequest , res:Response  )=>{  //for
     const UserId = req.userId
     console.log("createExpense - UserId:", UserId)
     try{
-        const expensedata = new expense({...req.body, user: UserId});
+        if (!UserId) {
+            return res.status(401).json({ message: "User not authenticated" })
+        }
+
+        const { purpose, amount, category, date, time } = req.body
+
+        if (!purpose || !category || amount === undefined) {
+            return res.status(400).json({
+                message: "purpose, amount and category are required"
+            })
+        }
+
+        const expensedata = new expense({
+            user: UserId,
+            purpose,
+            amount,
+            category,
+            date,
+            time,
+        });
         const savedExpenseData = await expensedata.save();
         console.log("createExpense - saved expense:", savedExpenseData)
 
-        res.status(200).json({savedExpenseData})
+        return res.status(200).json({savedExpenseData})
         
     }catch(error){
         console.log("expense controller not wokring ",error)
-        res.status(500).send("internal error-expensecontrol")
+        if (error instanceof mongoose.Error.ValidationError) {
+            return res.status(400).json({
+                message: "Validation failed",
+                errors: error.errors,
+            })
+        }
+        return res.status(500).send("internal error-expensecontrol")
     }
 }
 

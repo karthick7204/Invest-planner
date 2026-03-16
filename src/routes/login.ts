@@ -6,3 +6,4 @@ router.post('/login',login)
 router.post('/register' , createuser)
 router.put('/updateusername/:id', updateusername)
 router.delete('/deleteusername/:id',deleteusername)
+
