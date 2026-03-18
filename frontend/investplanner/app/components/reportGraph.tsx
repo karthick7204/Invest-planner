@@ -135,7 +135,7 @@ export default function ReportGraph() {
           />
           <Bar
             dataKey="spending"
-            fill="#3b82f6"
+            fill="#facc15"
             radius={[4, 4, 0, 0]}
             name="Spending"
           />
@@ -149,7 +149,7 @@ export default function ReportGraph() {
           <span className="text-gray-600 text-sm">Budget</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-500 rounded"></div>
+          <div className="w-4 h-4 bg-yellow-400 rounded"></div>
           <span className="text-gray-600 text-sm">Spending</span>
         </div>
       </div>

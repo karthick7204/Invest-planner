@@ -40,7 +40,7 @@ const IncomeExpensesChart: React.FC<IncomeExpensesChartProps> = ({
   height = 400,
 }) => {
   return (
-    <div className="max-w-5xl w-4xl h-[500px] bg-white rounded-lg p-30 shadow-sm">
+    <div className="max-w-5xl w-4xl h-125 bg-white rounded-lg p-25 shadow-sm">
       {title && (
         <h2 className="text-xl font-semibold text-gray-800 mb-6">{title}</h2>
       )}
@@ -74,13 +74,13 @@ const IncomeExpensesChart: React.FC<IncomeExpensesChartProps> = ({
           />
           <Bar
             dataKey="income"
-            fill="#1f2937"
+            fill="#1f2928"
             name="Income"
             radius={[4, 4, 0, 0]}
           />
           <Bar
             dataKey="expenses"
-            fill="#ec4899"
+            fill="#f59e0b"
             name="Expenses"
             radius={[4, 4, 0, 0]}
           />

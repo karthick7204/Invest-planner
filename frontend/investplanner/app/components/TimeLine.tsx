@@ -15,7 +15,7 @@ export function TimeLine() {
                 onClick={() => setActiveTab(tab.toLowerCase())}
                 className={`flex-1 py-3 px-4 font-semibold cursor-pointer transition  ${
                   activeTab === tab.toLowerCase()
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'bg-yellow-400 text-white shadow-md'
                     : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >

@@ -10,11 +10,11 @@ interface CategoryData {
 }
 
 const CATEGORY_DATA: CategoryData[] = [
-  { id: '1', category: 'Housing', amountSpent: '$2,150', percentageOfSalary: 45 },
-  { id: '2', category: 'Food & Dining', amountSpent: '$920', percentageOfSalary: 19 },
-  { id: '3', category: 'Transport', amountSpent: '$410', percentageOfSalary: 9 },
-  { id: '4', category: 'Entertainment', amountSpent: '$450', percentageOfSalary: 9 },
-  { id: '5', category: 'Savings & Invest', amountSpent: '$845', percentageOfSalary: 18 },
+  { id: '1', category: 'Housing', amountSpent: '₹2,150', percentageOfSalary: 45 },
+  { id: '2', category: 'Food & Dining', amountSpent: '₹920', percentageOfSalary: 19 },
+  { id: '3', category: 'Transport', amountSpent: '₹410', percentageOfSalary: 9 },
+  { id: '4', category: 'Entertainment', amountSpent: '₹450', percentageOfSalary: 9 },
+  { id: '5', category: 'Savings & Invest', amountSpent: '₹845', percentageOfSalary: 18 },
 ];
 
 export default function CategoryBreakdown() {
@@ -39,7 +39,7 @@ export default function CategoryBreakdown() {
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2 text-blue-500 hover:text-blue-700 font-medium transition"
+            className="flex items-center gap-2 text-black cursor-pointer hover:text-gray-600 font-medium transition"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -56,7 +56,7 @@ export default function CategoryBreakdown() {
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                 >
                   {months.map((month, index) => (
                     <option key={index} value={index}>
@@ -72,7 +72,7 @@ export default function CategoryBreakdown() {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                 >
                   {years.map((year) => (
                     <option key={year} value={year}>
@@ -85,7 +85,7 @@ export default function CategoryBreakdown() {
               {/* Close Button */}
               <button
                 onClick={() => setShowDropdown(false)}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition"
+                className="w-full bg-black hover:bg-gray-600 text-white py-2 rounded-lg font-medium transition"
               >
                 Done
               </button>
@@ -119,7 +119,7 @@ export default function CategoryBreakdown() {
                     {/* Progress Bar */}
                     <div className="w-40 bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-blue-500 h-2 rounded-full transition-all"
+                        className="bg-yellow-400 h-2 rounded-full transition-all"
                         style={{ width: `${item.percentageOfSalary}%` }}
                       ></div>
                     </div>

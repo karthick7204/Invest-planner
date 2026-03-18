@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { LayoutDashboard, FileText, TrendingUp, Settings, LogOut } from 'lucide-react';
+
 
 export default function Sidebar(){  
     const router = useRouter();
@@ -10,48 +12,53 @@ export default function Sidebar(){
     };
 
     return(
-        <div className="w-52 h-screen border-r-2 border-gray-300 p-4">
+        <div className="w-52 h-screen border-r-2 bg-[#ffffff] border-gray-200 shadow-2xl p-4">
             <h2 className="text-xl font-bold mb-4"></h2> 
             <ul>
-                <li className="mb-2 cursor-pointer">
+                <li className="mb-2 cursor-pointer flex flex-col">
                     <button 
                       onClick={() => handleNavigation('dashboard')} 
-                      className="cursor-pointer"
+                      className="cursor-pointer text-black flex items-center gap-3 w-full p-2 rounded hover:bg-gray-100 transition"
                     >
-                      Dashboard
+                       <LayoutDashboard size={20} />
+                      <span>Dashboard</span>
                     </button>
                 </li>
                 <li className="mb-2 cursor-pointer">
                     <button 
                       onClick={() => handleNavigation('reports')} 
-                      className="cursor-pointer"
+                      className="cursor-pointer text-black flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition"
                     >
-                        Reports
+                        <FileText size={20} />
+                        <span>Reports</span>
                     </button>
                 </li>
                 <li className="mb-2 cursor-pointer">
                     <button 
                       onClick={() => handleNavigation('stocksuggestions')} 
-                      className="cursor-pointer"
+                      className="cursor-pointer text-black text-[15px] flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition"
                     >
-                      Stock Suggestions
+                      <TrendingUp size={20} />
+                      <span>Stock Suggestion</span>
                     </button>
                 </li>
                 <div className='absolute bottom-4 '>
                   <li className="mb-3 cursor-pointer">
                     <button 
                       onClick={() => handleNavigation('settings')} 
-                      className="cursor-pointer hover:text-blue-500"
+                      className="cursor-pointer text-black flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition"
                     >
-                      Settings
+                      <Settings size={20} />
+                      <span>Settings</span>
                     </button>
                   </li>
                   <li className="mb-8 cursor-pointer">
                     <button 
-                      onClick={() => handleNavigation('logout')} 
-                      className="cursor-pointer hover:text-blue-500"
+                      onClick={() => router.push('/landingpage')} 
+                      className="cursor-pointer text-red-600 flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition"
                     >
-                      Logout
+                      <LogOut size={20} />
+                      <span>Logout</span>
                     </button>
                   </li>
                 </div>

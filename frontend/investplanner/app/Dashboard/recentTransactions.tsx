@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import AddTransactionModal from '../modals/addTransaction';
 
 interface Transaction {
   id: string;
@@ -14,21 +15,20 @@ interface Transaction {
 }
 
 const SAMPLE_TRANSACTIONS: Transaction[] = [
-  { id: '1', merchant: 'Apple Store', initials: 'A', category: 'Electronics', date: 'Oct 24, 2024', status: 'Completed', amount: '-$1,299.00', isExpense: true },
-  { id: '2', merchant: 'Monthly Salary', initials: 'M', category: 'Income', date: 'Oct 23, 2024', status: 'Completed', amount: '+$4,500.00', isExpense: false },
-  { id: '3', merchant: 'Whole Foods', initials: 'W', category: 'Groceries', date: 'Oct 22, 2024', status: 'Pending', amount: '-$124.50', isExpense: true },
-  { id: '4', merchant: 'Shell Gas Station', initials: 'S', category: 'Transport', date: 'Oct 21, 2024', status: 'Completed', amount: '-$65.00', isExpense: true },
-  { id: '5', merchant: 'Netflix Subscription', initials: 'N', category: 'Entertainment', date: 'Oct 20, 2024', status: 'Completed', amount: '-$15.99', isExpense: true },
-  { id: '6', merchant: 'Uber Ride', initials: 'U', category: 'Transport', date: 'Oct 19, 2024', status: 'Completed', amount: '-$32.50', isExpense: true },
-  { id: '7', merchant: 'Starbucks', initials: 'S', category: 'Food & Drink', date: 'Oct 18, 2024', status: 'Completed', amount: '-$6.75', isExpense: true },
-  { id: '8', merchant: 'Amazon Purchase', initials: 'A', category: 'Shopping', date: 'Oct 17, 2024', status: 'Pending', amount: '-$89.99', isExpense: true },
-  { id: '9', merchant: 'Gym Membership', initials: 'G', category: 'Health', date: 'Oct 16, 2024', status: 'Completed', amount: '-$50.00', isExpense: true },
-  { id: '10', merchant: 'Restaurant Dinner', initials: 'R', category: 'Dining', date: 'Oct 15, 2024', status: 'Completed', amount: '-$72.30', isExpense: true },
-  { id: '11', merchant: 'Freelance Project', initials: 'F', category: 'Income', date: 'Oct 14, 2024', status: 'Completed', amount: '+$800.00', isExpense: false },
-  { id: '12', merchant: 'Gas Bill', initials: 'G', category: 'Utilities', date: 'Oct 13, 2024', status: 'Completed', amount: '-$120.00', isExpense: true },
+  { id: '1', merchant: 'Apple Store', initials: 'A', category: 'Electronics', date: 'Oct 24, 2024', status: 'Completed', amount: '-₹1,299.00', isExpense: true },
+  { id: '2', merchant: 'Monthly Salary', initials: 'M', category: 'Income', date: 'Oct 23, 2024', status: 'Completed', amount: '+₹4,500.00', isExpense: false },
+  { id: '3', merchant: 'Whole Foods', initials: 'W', category: 'Groceries', date: 'Oct 22, 2024', status: 'Pending', amount: '-₹124.50', isExpense: true },
+  { id: '4', merchant: 'Shell Gas Station', initials: 'S', category: 'Transport', date: 'Oct 21, 2024', status: 'Completed', amount: '-₹65.00', isExpense: true },
+  { id: '5', merchant: 'Netflix Subscription', initials: 'N', category: 'Entertainment', date: 'Oct 20, 2024', status: 'Completed', amount: '-₹15.99', isExpense: true },
+  { id: '6', merchant: 'Uber Ride', initials: 'U', category: 'Transport', date: 'Oct 19, 2024', status: 'Completed', amount: '-₹32.50', isExpense: true },
+  { id: '7', merchant: 'Starbucks', initials: 'S', category: 'Food & Drink', date: 'Oct 18, 2024', status: 'Completed', amount: '-₹6.75', isExpense: true },
+  { id: '8', merchant: 'Amazon Purchase', initials: 'A', category: 'Shopping', date: 'Oct 17, 2024', status: 'Pending', amount: '-₹89.99', isExpense: true },
+  { id: '9', merchant: 'Gym Membership', initials: 'G', category: 'Health', date: 'Oct 16, 2024', status: 'Completed', amount: '-₹50.00', isExpense: true },
+  { id: '10', merchant: 'Restaurant Dinner', initials: 'R', category: 'Dining', date: 'Oct 15, 2024', status: 'Completed', amount: '-₹72.30', isExpense: true },
+  { id: '11', merchant: 'Freelance Project', initials: 'F', category: 'Income', date: 'Oct 14, 2024', status: 'Completed', amount: '+₹800.00', isExpense: false },
+  { id: '12', merchant: 'Gas Bill', initials: 'G', category: 'Utilities', date: 'Oct 13, 2024', status: 'Completed', amount: '-₹120.00', isExpense: true },
 ];
 
-// Separate component for table rows to prevent re-rendering
 const TableRows = React.memo(({ items }: { items: Transaction[] }) => (
   <>
     {items.map((transaction) => (
@@ -50,7 +50,6 @@ const TableRows = React.memo(({ items }: { items: Transaction[] }) => (
             {transaction.date}
           </div>
         </td>
-       
         <td className="py-4 px-4 text-right font-semibold">
           <span className={transaction.isExpense ? 'text-red-600' : 'text-green-600'}>
             {transaction.amount}
@@ -63,7 +62,6 @@ const TableRows = React.memo(({ items }: { items: Transaction[] }) => (
 
 TableRows.displayName = 'TableRows';
 
-// Separate component for pagination to prevent re-rendering
 const Pagination = React.memo(({ 
   totalPages, 
   currentPage, 
@@ -109,6 +107,7 @@ const Pagination = React.memo(({
 Pagination.displayName = 'Pagination';
 
 export default function RecentTransaction() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -133,6 +132,11 @@ export default function RecentTransaction() {
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
   }, []);
+
+  const handleAddTransaction = (data: any) => {
+    console.log('New transaction:', data);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="bg-white rounded-lg p-6 w-full">
@@ -172,26 +176,36 @@ export default function RecentTransaction() {
         </table>
       </div>
 
-      {/* Quick Add Expense Button (only show when not viewing all) */}
-      {!showAll && (
-        <div className="mt-8 flex justify-end">
-          <button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Quick Add Expense
-          </button>
-        </div>
-      )}
+      {/* Quick Add Expense Button - Always visible */}
+      <div className="mt-8 flex justify-end">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Quick Add Expense
+        </button>
+      </div>
 
       {/* Pagination (only show when viewing all) */}
       {showAll && (
-        <Pagination 
-          totalPages={totalPages} 
-          currentPage={currentPage} 
-          onPageChange={handlePageChange}
-        />
+        <div className="mt-8">
+          <Pagination 
+            totalPages={totalPages} 
+            currentPage={currentPage} 
+            onPageChange={handlePageChange}
+          />
+        </div>
       )}
+
+      {/* Add Transaction Modal - with blur background */}
+      <AddTransactionModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddTransaction}
+      />
     </div>
   );
 }
