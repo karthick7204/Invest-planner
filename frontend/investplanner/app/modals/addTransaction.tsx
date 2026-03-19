@@ -1,38 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
+import { apiCall } from '@/app/lib/api';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: TransactionData) => void;
+  onTransactionAdded?: () => void;
 }
 
 interface TransactionData {
-  type: 'Income' | 'Expense';
-  amount: string;
+  purpose: string;
+  amount: number;
   category: string;
   date: string;
-  notes: string;
 }
 
 const QUICK_CATEGORIES = ['Dining', 'Transport', 'Shopping', 'Utilities', 'Work'];
 
-export default function AddTransactionModal({ isOpen, onClose, onSubmit }: AddTransactionModalProps) {
+export default function AddTransactionModal({ isOpen, onClose, onTransactionAdded }: AddTransactionModalProps) {
   const [formData, setFormData] = useState<TransactionData>({
-    type: 'Expense',
-    amount: '',
+    purpose: '',
+    amount: 0,
     category: '',
     date: new Date().toISOString().split('T')[0],
-    notes: '',
   });
-
-  const handleTypeChange = (type: 'Income' | 'Expense') => {
-    setFormData({ ...formData, type });
-  };
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, amount: e.target.value });
+    setFormData({ ...formData, amount: parseFloat(e.target.value)  });
   };
 
   const handleCategoryClick = (category: string) => {
@@ -43,26 +40,74 @@ export default function AddTransactionModal({ isOpen, onClose, onSubmit }: AddTr
     setFormData({ ...formData, date: e.target.value });
   };
 
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData({ ...formData, notes: e.target.value });
+  const handlePurposeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, purpose: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      type: 'Expense',
-      amount: '',
-      category: '',
-      date: new Date().toISOString().split('T')[0],
-      notes: '',
-    });
+    setError('');
+    setLoading(true);
+
+    // Validate form
+    if (!formData.purpose) {
+      setError('Please enter a purpose');
+      setLoading(false);
+      return;
+    }
+    if (formData.amount <= 0) {
+      setError('Please enter a valid amount');
+      setLoading(false);
+      return;
+    }
+    if (!formData.category) {
+      setError('Please select a category');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await apiCall('/expense/create', {
+        method: 'POST',
+        body: JSON.stringify({
+          purpose: formData.purpose,
+          amount: formData.amount,
+          category: formData.category,
+          date: formData.date,
+        }),
+        headers: {
+        'Authorization': `${localStorage.getItem('authToken')}` // ✅ add this
+    }
+      });
+
+      console.log('Transaction created:', response);
+
+      // Reset form
+      setFormData({
+        purpose: '',
+        amount: 0,
+        category: '',
+        date: new Date().toISOString().split('T')[0],
+      });
+
+      // Callback to parent component
+      if (onTransactionAdded) {
+        onTransactionAdded();
+      }
+
+      onClose();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to create transaction');
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-  <div className="fixed inset-0  bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-96 max-h-screen overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
@@ -77,47 +122,36 @@ export default function AddTransactionModal({ isOpen, onClose, onSubmit }: AddTr
 
         <p className="text-gray-600 text-sm mb-6">Record your daily expense to keep your flow accurate</p>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Entry Type */}
+          {/* Purpose */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">ENTRY TYPE</label>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => handleTypeChange('Income')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-                  formData.type === 'Income'
-                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                    : 'bg-gray-100 text-gray-600 border border-gray-300'
-                }`}
-              >
-                + Income
-              </button>
-              <button
-                type="button"
-                onClick={() => handleTypeChange('Expense')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-                  formData.type === 'Expense'
-                    ? 'bg-red-500 text-white border border-red-500'
-                    : 'bg-gray-100 text-gray-600 border border-gray-300'
-                }`}
-              >
-                - Expense
-              </button>
-            </div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">PURPOSE</label>
+            <input
+              type="text"
+              value={formData.purpose}
+              onChange={handlePurposeChange}
+              placeholder="What was this for?"
+              className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {/* Amount */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">AMOUNT</label>
             <div className="relative">
-              <span className="absolute left-3 top-3 text-black">$</span>
+              <span className="absolute left-3 top-2 text-black">₹</span>
               <input
                 type="number"
                 value={formData.amount}
                 onChange={handleAmountChange}
                 placeholder="0.00"
-                step="0.01"
                 className="w-full pl-8 pr-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -155,18 +189,6 @@ export default function AddTransactionModal({ isOpen, onClose, onSubmit }: AddTr
             />
           </div>
 
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">NOTES (OPTIONAL)</label>
-            <textarea
-              value={formData.notes}
-              onChange={handleNotesChange}
-              placeholder="What was this for? (e.g. Weekly shop, Coffee with Sarah...)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={3}
-            />
-          </div>
-
           {/* Buttons */}
           <div className="flex gap-3 pt-4">
             <button
@@ -178,9 +200,10 @@ export default function AddTransactionModal({ isOpen, onClose, onSubmit }: AddTr
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 px-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition"
+              disabled={loading}
+              className="flex-1 py-2 px-4 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Transaction
+              {loading ? 'Saving...' : 'Save Transaction'}
             </button>
           </div>
         </form>

@@ -24,9 +24,6 @@ const expenseSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-    time: {
-        type: Number,
-    },
 }, { timestamps: true });
 export const expense = mongoose.model("expense", expenseSchema);
 //# sourceMappingURL=expenseModel.js.map

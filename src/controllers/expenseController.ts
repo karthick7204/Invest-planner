@@ -12,7 +12,7 @@ export const createExpense = async (req: authRequest , res:Response  )=>{  //for
             return res.status(401).json({ message: "User not authenticated" })
         }
 
-        const { purpose, amount, category, date, time } = req.body
+        const { purpose, amount, category, date } = req.body
 
         if (!purpose || !category || amount === undefined) {
             return res.status(400).json({
@@ -26,7 +26,6 @@ export const createExpense = async (req: authRequest , res:Response  )=>{  //for
             amount,
             category,
             date,
-            time,
         });
         const savedExpenseData = await expensedata.save();
         console.log("createExpense - saved expense:", savedExpenseData)

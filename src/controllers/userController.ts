@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 
 export const createuser = async (req :Request ,res : Response)=>{  //user creation function
     try{
-        const userdata = new user(req.body)
+      const userdata = new user(req.body)
       const saveduser = await userdata.save()
         console.log("it is wokring")
       if(!saveduser){

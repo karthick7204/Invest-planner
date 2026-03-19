@@ -1,0 +1,15 @@
+'use client';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Sidebar;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const navigation_1 = require("next/navigation");
+const lucide_react_1 = require("lucide-react");
+function Sidebar() {
+    const router = (0, navigation_1.useRouter)();
+    const handleNavigation = (page) => {
+        router.push(`/${page}`);
+    };
+    return ((0, jsx_runtime_1.jsxs)("div", { className: "w-52 h-screen border-r-2 bg-[#ffffff] border-gray-200 shadow-2xl p-4", children: [(0, jsx_runtime_1.jsx)("h2", { className: "text-xl font-bold mb-4" }), (0, jsx_runtime_1.jsxs)("ul", { children: [(0, jsx_runtime_1.jsx)("li", { className: "mb-2 cursor-pointer flex flex-col", children: (0, jsx_runtime_1.jsxs)("button", { onClick: () => handleNavigation('dashboard'), className: "cursor-pointer text-black flex items-center gap-3 w-full p-2 rounded hover:bg-gray-100 transition", children: [(0, jsx_runtime_1.jsx)(lucide_react_1.LayoutDashboard, { size: 20 }), (0, jsx_runtime_1.jsx)("span", { children: "Dashboard" })] }) }), (0, jsx_runtime_1.jsx)("li", { className: "mb-2 cursor-pointer", children: (0, jsx_runtime_1.jsxs)("button", { onClick: () => handleNavigation('reports'), className: "cursor-pointer text-black flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition", children: [(0, jsx_runtime_1.jsx)(lucide_react_1.FileText, { size: 20 }), (0, jsx_runtime_1.jsx)("span", { children: "Reports" })] }) }), (0, jsx_runtime_1.jsx)("li", { className: "mb-2 cursor-pointer", children: (0, jsx_runtime_1.jsxs)("button", { onClick: () => handleNavigation('stocksuggestions'), className: "cursor-pointer text-black text-[15px] flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition", children: [(0, jsx_runtime_1.jsx)(lucide_react_1.TrendingUp, { size: 20 }), (0, jsx_runtime_1.jsx)("span", { children: "Stock Suggestion" })] }) }), (0, jsx_runtime_1.jsxs)("div", { className: 'absolute bottom-4 ', children: [(0, jsx_runtime_1.jsx)("li", { className: "mb-3 cursor-pointer", children: (0, jsx_runtime_1.jsxs)("button", { onClick: () => handleNavigation('settings'), className: "cursor-pointer text-black flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition", children: [(0, jsx_runtime_1.jsx)(lucide_react_1.Settings, { size: 20 }), (0, jsx_runtime_1.jsx)("span", { children: "Settings" })] }) }), (0, jsx_runtime_1.jsx)("li", { className: "mb-8 cursor-pointer", children: (0, jsx_runtime_1.jsxs)("button", { onClick: () => router.push('/landingpage'), className: "cursor-pointer text-red-600 flex items-center gap-3 w-full p-1 rounded hover:bg-gray-100 transition", children: [(0, jsx_runtime_1.jsx)(lucide_react_1.LogOut, { size: 20 }), (0, jsx_runtime_1.jsx)("span", { children: "Logout" })] }) })] })] })] }));
+}
+//# sourceMappingURL=sidebar.js.map

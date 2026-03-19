@@ -8,7 +8,7 @@ export const createExpense = async (req, res) => {
         if (!UserId) {
             return res.status(401).json({ message: "User not authenticated" });
         }
-        const { purpose, amount, category, date, time } = req.body;
+        const { purpose, amount, category, date } = req.body;
         if (!purpose || !category || amount === undefined) {
             return res.status(400).json({
                 message: "purpose, amount and category are required"
@@ -20,7 +20,6 @@ export const createExpense = async (req, res) => {
             amount,
             category,
             date,
-            time,
         });
         const savedExpenseData = await expensedata.save();
         console.log("createExpense - saved expense:", savedExpenseData);

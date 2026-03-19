@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+
       <body className="antialiased">
         <aside className="w-64 fixed left-0 top-7 h-screen overflow-y-auto">
           <Sidebar />
@@ -39,6 +39,6 @@ export default function RootLayout({
           </main>
         </div>
       </body>
-    </html>
+ 
   );
 }

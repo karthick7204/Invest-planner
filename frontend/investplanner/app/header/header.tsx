@@ -5,11 +5,11 @@ import {  User } from 'lucide-react';
 
 export default function Header(){
       const [isModalOpen, setIsModalOpen] = useState(false);
-       const handleAddTransaction = (data: any) => {
-       console.log('New transaction:', data);
-       setIsModalOpen(false);
+        const handleTransactionAdded = () => {
+        console.log('✅ Transaction added successfully');
+        // Refresh transactions list or update state here
+        // You can fetch new transactions from API if needed
   };
-
     return(
         <div className="flex p-4 h-15 justify-between border-b-2 bg-[#ffffff] border-gray-200 shadow-lg ">
         <h1 className="absolute left-3 top-3 text-black font-bold text-3xl">Wealth <span className="text-yellow-400">Pilot</span></h1>
@@ -19,7 +19,7 @@ export default function Header(){
                      <AddTransactionModal 
                      isOpen={isModalOpen}
                      onClose={() => setIsModalOpen(false)}
-                     onSubmit={handleAddTransaction}
+                     onTransactionAdded={handleTransactionAdded}
       />
                 </div>
             </div>

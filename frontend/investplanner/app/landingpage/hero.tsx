@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
     export default function Hero(){
     const router = useRouter();
     const login =()=>{
-
         router.push("/auth/login")
     }
     const signup =()=>{

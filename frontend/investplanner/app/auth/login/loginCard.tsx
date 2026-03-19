@@ -1,20 +1,53 @@
 "use client";
 import { useState } from "react";
-import { Mail, Lock, Github } from "lucide-react";
+import { Mail, Lock, Github, User } from "lucide-react";
 import { useRouter } from "next/navigation"; 
+import { apiCall } from "@/app/lib/api";
 export default function LoginCard() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Add your authentication logic here
-    router.push("/dashboard");
-    setLoading(false);
-  };
+
+  try {
+        console.log({ email, password });
+  
+        // ✅ apiCall already handles errors, just await the response
+        const response = await apiCall("/api/login", {
+          method: "POST",
+          body: JSON.stringify({  username, email, password }),
+        });
+  
+        console.log("Login successful:", response);
+  
+        // ✅ If we reach here, login was successful
+        // Store token if backend returns one
+        if (response.data.token) {
+          localStorage.setItem("authToken", response.data.token);
+          console.log("✅ Token saved to localStorage");
+          console.log("✅ Verify:", localStorage.getItem("authToken"));
+
+        }
+  
+        // ✅ Navigate to dashboard
+        router.push("/dashboard");
+      } catch (error) {
+        // ✅ If any error occurs, display it
+        const errorMessage = error instanceof Error ? error.message : "Login failed";
+        setError(errorMessage);
+        console.error("Login error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };  
 
   const handleGoogleLogin = () => {
     // Add Google OAuth logic here
@@ -32,6 +65,23 @@ export default function LoginCard() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/*name Input */}
+           <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                        <input
+                          type="text"
+                          placeholder="Rahuman dakait"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 text-black text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                          required
+                        />
+                      </div>
+                    </div>
           {/* Email Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

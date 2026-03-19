@@ -133,9 +133,11 @@ export default function RecentTransaction() {
     setCurrentPage(page);
   }, []);
 
-  const handleAddTransaction = (data: any) => {
-    console.log('New transaction:', data);
-    setIsModalOpen(false);
+  // ✅ Updated to use onTransactionAdded instead of onSubmit
+  const handleTransactionAdded = () => {
+    console.log('✅ Transaction added successfully');
+    // Refresh transactions list or update state here
+    // You can fetch new transactions from API if needed
   };
 
   return (
@@ -204,7 +206,7 @@ export default function RecentTransaction() {
       <AddTransactionModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleAddTransaction}
+        onTransactionAdded={handleTransactionAdded}
       />
     </div>
   );

@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { apiCall } from "@/app/lib/api";
 
 export default function SignupCard() {
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -25,31 +26,35 @@ export default function SignupCard() {
     }
 
     try {
-      // Your signup authentication logic here
-      console.log({ name, email, password });
+      console.log({ username, email, password });
 
-      // Replace with your actual API call
-      const response = await fetch("/api/signup", {
+      // ✅ apiCall already handles errors, just await the response
+      const response = await apiCall("/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ username, email, password }),
       });
 
-      if (response.ok) {
-        router.push("/dashboard");
-      } else {
-        setError("Signup failed. Please try again.");
+      console.log("Signup successful:", response);
+
+      // ✅ If we reach here, signup was successful
+      // Store token if backend returns one
+      if (response.token) {
+        localStorage.setItem("authToken", response.token);
       }
+
+      // ✅ Navigate to dashboard
+      router.push("/dashboard");
     } catch (error) {
-      setError("An error occurred. Please try again.");
-      console.error("Error:", error);
+      // ✅ If any error occurs, display it
+      const errorMessage = error instanceof Error ? error.message : "Signup failed";
+      setError(errorMessage);
+      console.error("Signup error:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignup = () => {
-    // Use router for navigation instead of href
     router.push("/auth/google");
   };
 
@@ -85,8 +90,8 @@ export default function SignupCard() {
               <input
                 type="text"
                 placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 text-black text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 required
               />
