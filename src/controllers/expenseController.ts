@@ -27,6 +27,7 @@ export const createExpense = async (req: authRequest , res:Response  )=>{  //for
             category,
             date,
         });
+
         const savedExpenseData = await expensedata.save();
         console.log("createExpense - saved expense:", savedExpenseData)
 

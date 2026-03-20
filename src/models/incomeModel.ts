@@ -6,10 +6,26 @@ const incomeSchema = new mongoose.Schema({
        ref:"user",
        required:[true, "user is required"]
     },
-    income: {
+    purpose:{
+        type:String,
+        trim: true,
+        default: "General",
+    },
+    amount: {
         type:Number,
         required:[true, "income is required"],
         min:[0, "income cannot be negative"]
-    }
-},{timestamps:true})
+    }, 
+    category:{
+        type:String,
+        trim: true, 
+        default: "Other",
+    },
+    date:{
+        type:Date,
+        default: Date.now,
+    },
+},
+{timestamps:true}
+);
 export const income = mongoose.model("income",incomeSchema)
