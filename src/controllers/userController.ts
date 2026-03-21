@@ -19,7 +19,7 @@ export const createuser = async (req :Request ,res : Response)=>{  //user creati
          },
          process.env.JWT_SECRET as string,
          
-         {expiresIn:"1h"}
+         {expiresIn:"1h"}  
       )
      }catch(err){
       console.log(err);
