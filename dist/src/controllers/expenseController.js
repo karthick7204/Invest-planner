@@ -68,4 +68,25 @@ export const totalExpense = async (req, res) => {
         return res.status(500).json({ message: "error in totalExpense", error });
     }
 };
+export const getExpenseCategoryData = async (req, res) => {
+    const userId = req.userId;
+    if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid user id" });
+    }
+    try {
+        const categoryData = await expense.aggregate([
+            { $match: { user: new mongoose.Types.ObjectId(userId) } },
+            { $group: { _id: "$category", totalAmount: { $sum: "$amount" } } },
+            { $project: { _id: 0, name: "$_id", value: "$totalAmount" } }
+        ]);
+        return res.status(200).json({ categoryData });
+    }
+    catch (error) {
+        console.log("getExpenseCategoryData error", error);
+        return res.status(500).json({ message: "error in getExpenseCategoryData", error });
+    }
+};
 //# sourceMappingURL=expenseController.js.map

@@ -15,6 +15,6 @@ exports.metadata = {
     description: "Manage your finances smartly",
 };
 function RootLayout({ children, }) {
-    return ((0, jsx_runtime_1.jsx)("body", { children: children }));
+    return ((0, jsx_runtime_1.jsx)("html", { children: (0, jsx_runtime_1.jsx)("body", { children: children }) }));
 }
 //# sourceMappingURL=layout.js.map

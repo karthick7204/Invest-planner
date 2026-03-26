@@ -21,7 +21,7 @@ function LoginCard() {
         try {
             console.log({ email, password });
             // ✅ apiCall already handles errors, just await the response
-            const response = await (0, api_1.apiCall)("/api/login", {
+            const response = await (0, api_1.apiCall)("api/login", {
                 method: "POST",
                 body: JSON.stringify({ username, email, password }),
             });

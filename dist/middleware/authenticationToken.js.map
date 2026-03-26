@@ -1,1 +1,0 @@
-{"version":3,"file":"authenticationToken.js","sourceRoot":"","sources":["../../src/middleware/authenticationToken.ts"],"names":[],"mappings":"AAAA,OAAO,EAAgC,OAAO,EAAU,MAAM,SAAS,CAAA;AAIvE,MAAM,SAAS,GAAG,OAAO,CAAC,GAAG,CAAC,UAAU,CAAA;AACxC,MAAM,KAAK,GAAO,OAAO,CAAC,OAAO,CAAC,aAAa,CAAA;AAC/C,MAAM,CAAC,MAAM,SAAS,GAAG,KAAK,IAAE,EAAE;AAGlC,CAAC,CAAA"}

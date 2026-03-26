@@ -6,16 +6,25 @@ import { totalExpenseAmount } from '../service/totalExpense.js';
 export const createincome = async (req, res) => {
     let userId = req.userId;
     try {
-        const incomeAmount = new income({
+        const { purpose, amount, category, date } = req.body;
+        if (!purpose || !category || amount === undefined) {
+            return res.status(400).json({
+                message: "purpose, amount and category are required"
+            });
+        }
+        const incomedata = new income({
             user: userId,
-            income: req.body.income || req.body.amount
+            purpose,
+            amount,
+            category,
+            date,
         });
-        const savedIncomeAmount = await incomeAmount.save();
+        const savedIncomeAmount = await incomedata.save();
         console.log("createincome - saved document:", savedIncomeAmount);
         if (!savedIncomeAmount) {
             return res.status(400).json({ message: "no income data" });
         }
-        return res.status(201).json({ incomedata: savedIncomeAmount });
+        return res.status(201).json({ incomedataa: savedIncomeAmount });
     }
     catch (error) {
         console.log(error);

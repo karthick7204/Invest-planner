@@ -1,18 +1,27 @@
 import mongoose from "mongoose";
 export declare const income: mongoose.Model<{
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, {
     timestamps: true;
 }> & Omit<{
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
@@ -23,17 +32,26 @@ export declare const income: mongoose.Model<{
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, {
     timestamps: true;
 }, {
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, mongoose.Document<unknown, {}, {
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, mongoose.ResolveSchemaOptions<{
     timestamps: true;
 }>> & Omit<{
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
@@ -45,14 +63,20 @@ export declare const income: mongoose.Model<{
     [path: string]: mongoose.SchemaDefinitionProperty<undefined, any, any>;
 } | {
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
-        income: number;
+        purpose: string;
+        amount: number;
+        category: string;
+        date: NativeDate;
         user: mongoose.Types.ObjectId;
     } & mongoose.DefaultTimestampProps, {
         id: string;
     }, mongoose.ResolveSchemaOptions<{
         timestamps: true;
     }>> & Omit<{
-        income: number;
+        purpose: string;
+        amount: number;
+        category: string;
+        date: NativeDate;
         user: mongoose.Types.ObjectId;
     } & mongoose.DefaultTimestampProps & {
         _id: mongoose.Types.ObjectId;
@@ -62,7 +86,10 @@ export declare const income: mongoose.Model<{
         id: string;
     }> | undefined;
 }, {
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
     createdAt: NativeDate;
     updatedAt: NativeDate;
@@ -71,7 +98,10 @@ export declare const income: mongoose.Model<{
 } & {
     __v: number;
 }>, {
-    income: number;
+    purpose: string;
+    amount: number;
+    category: string;
+    date: NativeDate;
     user: mongoose.Types.ObjectId;
     createdAt: NativeDate;
     updatedAt: NativeDate;

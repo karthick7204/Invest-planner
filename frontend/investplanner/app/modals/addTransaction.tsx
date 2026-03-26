@@ -14,24 +14,42 @@ interface TransactionData {
   amount: number;
   category: string;
   date: string;
+  type: 'expense' | 'income';
 }
 
-const QUICK_CATEGORIES = ['Dining', 'Transport', 'Shopping', 'Utilities', 'Work'];
+const EXPENSE_CATEGORIES = ['Dining', 'Transport', 'Shopping', 'Utilities', 'Work', 'Health', 'Entertainment'];
+const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Investment', 'Bonus', 'Other'];
 
 export default function AddTransactionModal({ isOpen, onClose, onTransactionAdded }: AddTransactionModalProps) {
+  const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
   const [formData, setFormData] = useState<TransactionData>({
     purpose: '',
     amount: 0,
     category: '',
     date: new Date().toISOString().split('T')[0],
+    type: 'expense',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, amount: parseFloat(e.target.value)  });
+  const categories = transactionType === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+
+  const handleTypeChange = (type: 'expense' | 'income') => {
+    setTransactionType(type);
+    setFormData({
+      ...formData,
+      type,
+      category: '', // Reset category when switching tabs
+    });
   };
 
+const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value;
+  setFormData({ 
+    ...formData, 
+    amount: value === '' ? 0 : parseFloat(value) 
+  });
+};
   const handleCategoryClick = (category: string) => {
     setFormData({ ...formData, category });
   };
@@ -67,7 +85,10 @@ export default function AddTransactionModal({ isOpen, onClose, onTransactionAdde
     }
 
     try {
-      const response = await apiCall('/expense/create', {
+      // ✅ Different API endpoints for expense and income
+      const endpoint = transactionType === 'expense' ? '/expense/create' : '/expense/income';
+
+      const response = await apiCall(endpoint, {
         method: 'POST',
         body: JSON.stringify({
           purpose: formData.purpose,
@@ -75,19 +96,17 @@ export default function AddTransactionModal({ isOpen, onClose, onTransactionAdde
           category: formData.category,
           date: formData.date,
         }),
-        headers: {
-        'Authorization': `${localStorage.getItem('authToken')}` // ✅ add this
-    }
       });
 
-      console.log('Transaction created:', response);
+      console.log(`✅ ${transactionType === 'expense' ? 'Expense' : 'Income'} created:`, response);
 
       // Reset form
       setFormData({
         purpose: '',
-        amount: 0,
+        amount:0,
         category: '',
         date: new Date().toISOString().split('T')[0],
+        type: transactionType,
       });
 
       // Callback to parent component
@@ -114,13 +133,39 @@ export default function AddTransactionModal({ isOpen, onClose, onTransactionAdde
           <h2 className="text-2xl font-bold text-gray-800">Add Transaction</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="text-gray-500 hover:text-gray-700 text-2xl cursor-pointer"
           >
             ✕
           </button>
         </div>
 
-        <p className="text-gray-600 text-sm mb-6">Record your daily expense to keep your flow accurate</p>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => handleTypeChange('expense')}
+            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+              transactionType === 'expense'
+                ? 'bg-red-500 text-white'
+                : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+            }`}
+          >
+            - Expense
+          </button>
+          <button
+            onClick={() => handleTypeChange('income')}
+            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+              transactionType === 'income'
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+            }`}
+          >
+            + Income
+          </button>
+        </div>
+
+        <p className="text-gray-600 text-sm mb-6">
+          {transactionType === 'expense' ? 'Record your daily expenses' : 'Record your income'}
+        </p>
 
         {/* Error Message */}
         {error && (
@@ -137,7 +182,7 @@ export default function AddTransactionModal({ isOpen, onClose, onTransactionAdde
               type="text"
               value={formData.purpose}
               onChange={handlePurposeChange}
-              placeholder="What was this for?"
+              placeholder={transactionType === 'expense' ? 'What did you spend on?' : 'What was the income from?'}
               className="w-full px-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -149,7 +194,7 @@ export default function AddTransactionModal({ isOpen, onClose, onTransactionAdde
               <span className="absolute left-3 top-2 text-black">₹</span>
               <input
                 type="number"
-                value={formData.amount}
+               value={formData.amount || ''}
                 onChange={handleAmountChange}
                 placeholder="0.00"
                 className="w-full pl-8 pr-3 py-2 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -159,16 +204,18 @@ export default function AddTransactionModal({ isOpen, onClose, onTransactionAdde
 
           {/* Quick Select Category */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">QUICK SELECT CATEGORY</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">CATEGORY</label>
             <div className="grid grid-cols-3 gap-2">
-              {QUICK_CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => handleCategoryClick(cat)}
                   className={`py-2 px-3 rounded-lg text-sm font-medium transition ${
                     formData.category === cat
-                      ? 'bg-blue-500 text-white'
+                      ? transactionType === 'expense'
+                        ? 'bg-red-500 text-white'
+                        : 'bg-green-500 text-white'
                       : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
                   }`}
                 >
@@ -201,9 +248,13 @@ export default function AddTransactionModal({ isOpen, onClose, onTransactionAdde
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2 px-4 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex-1 py-2 px-4 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                transactionType === 'expense'
+                  ? 'bg-red-500 hover:bg-red-600'
+                  : 'bg-green-500 hover:bg-green-600'
+              }`}
             >
-              {loading ? 'Saving...' : 'Save Transaction'}
+              {loading ? 'Saving...' : `Add ${transactionType === 'expense' ? 'Expense' : 'Income'}`}
             </button>
           </div>
         </form>
