@@ -23,7 +23,7 @@ export const displayStocks = async (req: authRequest, res: Response) => {
         const surplusamount = await surplus(Income_total,Expense_total) 
         const stockList = stockCalculator(stockSymbol,surplusamount);
       
-        return res.status(200).json({ surplusamount,stockList })
+        return res.status(200).json({ stockList })
 
 }catch(error){
     console.log("displayStocks error", error)

@@ -8,7 +8,7 @@ export const totalIncomeAmount = async (userId) => {
                 $match: { user: userObjectId }
             },
             {
-                $group: { _id: null, total: { $sum: "$income" } }
+                $group: { _id: null, total: { $sum: "$amount" } }
             }
         ]);
         return result[0]?.total || 0;

@@ -34,6 +34,7 @@ export const apiCall = async (
   }
 
   const response = await fetch(url, {
+    cache: 'no-store',
     ...options,
     headers,
   });

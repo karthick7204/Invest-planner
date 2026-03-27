@@ -7,6 +7,7 @@ import { SurplusCard } from "./surplusCard";
 import { BudgetButton } from "./BudgetButton";
 
 export default function DashboardPage() {
+  
   return (
     <div className="absolute bg-[#f6f7f6]  top-12 left-52 flex flex-col items-start justify-start gap-4 p-4 w-[calc(100%-15rem)]">
       <div className="flex w-full justify-between items-center">
@@ -18,7 +19,7 @@ export default function DashboardPage() {
       </div>
       <div className="flex flex-row gap-16">
          <IncomeCard />
-         <ExpenseCard />
+         <ExpenseCard/>
          <SurplusCard />
       </div>
       <CashFlowGraph />

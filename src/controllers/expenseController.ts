@@ -1,4 +1,5 @@
 import { expense } from '../models/expenseModel.js'
+import { transaction } from '../models/transactionModel.js'
 import {  Response} from 'express'
 import { authRequest } from '../middleware/authentication.js';
 import {totalExpenseAmount} from '../service/totalExpense.js';
@@ -29,6 +30,18 @@ export const createExpense = async (req: authRequest , res:Response  )=>{  //for
         });
 
         const savedExpenseData = await expensedata.save();
+        
+        // Create transaction record
+        const transactionData = new transaction({
+            user: UserId,
+            type: "expense",
+            topic: purpose,
+            category,
+            amount,
+            date,
+        });
+        await transactionData.save();
+
         console.log("createExpense - saved expense:", savedExpenseData)
 
         return res.status(200).json({savedExpenseData})
@@ -104,4 +117,23 @@ export const getExpenseCategoryData = async(req:authRequest,res:Response)=>{
         console.log("getExpenseCategoryData error", error)
         return res.status(500).json({message:"error in getExpenseCategoryData", error})
     }
-}  
+}
+
+export const getTransactions = async(req:authRequest,res:Response)=>{
+    const userId = req.userId
+    if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try{
+        const limit = parseInt(req.query.limit as string) || 10;
+        const transactions = await transaction.find({ user: userId })
+            .sort({ date: -1 })
+            .limit(limit);
+
+        return res.status(200).json({ transactions })
+    }catch(error){
+        console.log("getTransactions error", error)
+        return res.status(500).json({message:"error in getTransactions", error})
+    }
+}

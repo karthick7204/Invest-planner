@@ -1,4 +1,5 @@
 import { income } from '../models/incomeModel.js';
+import { transaction } from '../models/transactionModel.js';
 import mongoose from 'mongoose';
 import { surplus } from '../service/investSurplus.js';
 import { totalIncomeAmount } from '../service/totalIncome.js';
@@ -20,6 +21,16 @@ export const createincome = async (req, res) => {
             date,
         });
         const savedIncomeAmount = await incomedata.save();
+        // Create transaction record
+        const transactionData = new transaction({
+            user: userId,
+            type: "income",
+            topic: purpose,
+            category,
+            amount,
+            date,
+        });
+        await transactionData.save();
         console.log("createincome - saved document:", savedIncomeAmount);
         if (!savedIncomeAmount) {
             return res.status(400).json({ message: "no income data" });

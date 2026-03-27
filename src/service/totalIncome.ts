@@ -10,7 +10,7 @@ export const totalIncomeAmount = async( userId : string)=>{
                            $match:{ user: userObjectId }
                       },
                       {
-                           $group:{ _id:null, total:{$sum: "$income"} }
+                           $group:{ _id:null, total:{$sum: "$amount"} }
                       }
                  ])
             return result[0]?.total || 0

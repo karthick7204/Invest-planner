@@ -26,6 +26,7 @@ const apiCall = async (endpoint, options = {}) => {
         console.log("✅ Token added to header");
     }
     const response = await fetch(url, {
+        cache: 'no-store',
         ...options,
         headers,
     });

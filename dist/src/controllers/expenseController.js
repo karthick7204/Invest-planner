@@ -1,4 +1,5 @@
 import { expense } from '../models/expenseModel.js';
+import { transaction } from '../models/transactionModel.js';
 import { totalExpenseAmount } from '../service/totalExpense.js';
 import mongoose from 'mongoose';
 export const createExpense = async (req, res) => {
@@ -22,6 +23,16 @@ export const createExpense = async (req, res) => {
             date,
         });
         const savedExpenseData = await expensedata.save();
+        // Create transaction record
+        const transactionData = new transaction({
+            user: UserId,
+            type: "expense",
+            topic: purpose,
+            category,
+            amount,
+            date,
+        });
+        await transactionData.save();
         console.log("createExpense - saved expense:", savedExpenseData);
         return res.status(200).json({ savedExpenseData });
     }
@@ -87,6 +98,23 @@ export const getExpenseCategoryData = async (req, res) => {
     catch (error) {
         console.log("getExpenseCategoryData error", error);
         return res.status(500).json({ message: "error in getExpenseCategoryData", error });
+    }
+};
+export const getTransactions = async (req, res) => {
+    const userId = req.userId;
+    if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        const transactions = await transaction.find({ user: userId })
+            .sort({ date: -1 })
+            .limit(limit);
+        return res.status(200).json({ transactions });
+    }
+    catch (error) {
+        console.log("getTransactions error", error);
+        return res.status(500).json({ message: "error in getTransactions", error });
     }
 };
 //# sourceMappingURL=expenseController.js.map

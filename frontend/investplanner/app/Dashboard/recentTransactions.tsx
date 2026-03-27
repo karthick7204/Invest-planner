@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import AddTransactionModal from '../modals/addTransaction';
+import { apiCall } from '../lib/api';
 
 interface Transaction {
   id: string;
@@ -13,21 +14,6 @@ interface Transaction {
   amount: string;
   isExpense: boolean;
 }
-
-const SAMPLE_TRANSACTIONS: Transaction[] = [
-  { id: '1', merchant: 'Apple Store', initials: 'A', category: 'Electronics', date: 'Oct 24, 2024', status: 'Completed', amount: '-₹1,299.00', isExpense: true },
-  { id: '2', merchant: 'Monthly Salary', initials: 'M', category: 'Income', date: 'Oct 23, 2024', status: 'Completed', amount: '+₹4,500.00', isExpense: false },
-  { id: '3', merchant: 'Whole Foods', initials: 'W', category: 'Groceries', date: 'Oct 22, 2024', status: 'Pending', amount: '-₹124.50', isExpense: true },
-  { id: '4', merchant: 'Shell Gas Station', initials: 'S', category: 'Transport', date: 'Oct 21, 2024', status: 'Completed', amount: '-₹65.00', isExpense: true },
-  { id: '5', merchant: 'Netflix Subscription', initials: 'N', category: 'Entertainment', date: 'Oct 20, 2024', status: 'Completed', amount: '-₹15.99', isExpense: true },
-  { id: '6', merchant: 'Uber Ride', initials: 'U', category: 'Transport', date: 'Oct 19, 2024', status: 'Completed', amount: '-₹32.50', isExpense: true },
-  { id: '7', merchant: 'Starbucks', initials: 'S', category: 'Food & Drink', date: 'Oct 18, 2024', status: 'Completed', amount: '-₹6.75', isExpense: true },
-  { id: '8', merchant: 'Amazon Purchase', initials: 'A', category: 'Shopping', date: 'Oct 17, 2024', status: 'Pending', amount: '-₹89.99', isExpense: true },
-  { id: '9', merchant: 'Gym Membership', initials: 'G', category: 'Health', date: 'Oct 16, 2024', status: 'Completed', amount: '-₹50.00', isExpense: true },
-  { id: '10', merchant: 'Restaurant Dinner', initials: 'R', category: 'Dining', date: 'Oct 15, 2024', status: 'Completed', amount: '-₹72.30', isExpense: true },
-  { id: '11', merchant: 'Freelance Project', initials: 'F', category: 'Income', date: 'Oct 14, 2024', status: 'Completed', amount: '+₹800.00', isExpense: false },
-  { id: '12', merchant: 'Gas Bill', initials: 'G', category: 'Utilities', date: 'Oct 13, 2024', status: 'Completed', amount: '-₹120.00', isExpense: true },
-];
 
 const TableRows = React.memo(({ items }: { items: Transaction[] }) => (
   <>
@@ -110,14 +96,45 @@ export default function RecentTransaction() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [transactionsData, setTransactionsData] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTransactions = async () => {
+    try {
+      const data = await apiCall('/expense/transactions?limit=50');
+      if (data && data.transactions) {
+        const mappedData: Transaction[] = data.transactions.map((t: any) => ({
+          id: t._id,
+          merchant: t.topic || 'Unknown',
+          initials: (t.topic || '?').charAt(0).toUpperCase(),
+          category: t.category,
+          date: new Date(t.date).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric'
+          }),
+          status: 'Completed',
+          amount: t.type === 'expense' ? `-₹${t.amount}` : `+₹${t.amount}`,
+          isExpense: t.type === 'expense'
+        }));
+        setTransactionsData(mappedData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   const itemsPerPage = 10;
   
   const paginatedItems = showAll
-    ? SAMPLE_TRANSACTIONS.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-    : SAMPLE_TRANSACTIONS.slice(0, 5);
+    ? transactionsData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+    : transactionsData.slice(0, 5);
 
-  const totalPages = Math.ceil(SAMPLE_TRANSACTIONS.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(transactionsData.length / itemsPerPage));
 
   const handleViewAll = useCallback(() => {
     setShowAll(true);
@@ -133,11 +150,12 @@ export default function RecentTransaction() {
     setCurrentPage(page);
   }, []);
 
-  // ✅ Updated to use onTransactionAdded instead of onSubmit
   const handleTransactionAdded = () => {
     console.log('✅ Transaction added successfully');
-    // Refresh transactions list or update state here
-    // You can fetch new transactions from API if needed
+    // Refresh transactions list
+    fetchTransactions();
+    // Dispatch an event to update other components like cards
+    typeof window !== 'undefined' && window.dispatchEvent(new Event('transactionAdded'));
   };
 
   return (
@@ -173,7 +191,17 @@ export default function RecentTransaction() {
             </tr>
           </thead>
           <tbody>
-            <TableRows items={paginatedItems} />
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="py-4 px-4 text-center text-gray-500">Loading transactions...</td>
+              </tr>
+            ) : paginatedItems.length > 0 ? (
+              <TableRows items={paginatedItems} />
+            ) : (
+              <tr>
+                <td colSpan={4} className="py-4 px-4 text-center text-gray-500">No recent transactions found</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -192,7 +220,7 @@ export default function RecentTransaction() {
       </div>
 
       {/* Pagination (only show when viewing all) */}
-      {showAll && (
+      {showAll && transactionsData.length > 0 && (
         <div className="mt-8">
           <Pagination 
             totalPages={totalPages} 
