@@ -1,66 +1,115 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, X, Check, Loader2 } from "lucide-react";
+import { apiCall } from "../lib/api";
 
 export function BudgetButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [budgetType, setBudgetType] = useState("monthly");
+  const [category, setCategory] = useState("General");
   const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Budget set:", { type: budgetType, amount });
-    setIsOpen(false);
-    // You can integrate API call here in the future
+    setLoading(true);
+    
+    try {
+      // Format current month as YYYY-MM
+      const currentMonth = new Date().toISOString().substring(0, 7);
+      
+      await apiCall("/budget/set", {
+        method: "POST",
+        body: JSON.stringify({
+          category,
+          limit: Number(amount),
+          month: currentMonth
+        }),
+      });
+
+      setSuccess(true);
+      setTimeout(() => {
+        setIsOpen(false);
+        setSuccess(false);
+        setAmount("");
+        // Notify other components to refresh if needed
+        window.dispatchEvent(new Event('budgetUpdated'));
+      }, 1500);
+    } catch (error) {
+      console.error("Failed to set budget:", error);
+      alert("Error saving budget. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const categories = ["General", "Food", "Transport", "Rent", "Groceries", "Entertainment", "Shopping", "Utilities", "Healthcare"];
 
   return (
     <div className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-gray-700 text-white px-5 py-2.5 rounded-xl shadow-md hover:bg-gray-800 transition"
+        className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition-all font-medium text-sm"
       >
         <Plus size={18} />
         Set Budget
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-14 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-5 z-50">
-          <h3 className="font-semibold text-gray-800 mb-4 text-lg">Set New Budget</h3>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="absolute right-0 top-14 mt-2 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 z-50 animate-in fade-in zoom-in duration-200">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-slate-800 text-lg">Define Budget</h3>
+            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1.5">Duration</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2 px-1">Category</label>
               <select 
-                value={budgetType} 
-                onChange={(e) => setBudgetType(e.target.value)}
-                className="w-full text-black bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                value={category} 
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full text-slate-700 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all appearance-none"
               >
-                <option value="monthly" className="text-black">Monthly</option>
-                <option value="yearly"  className="text-black"  >Yearly</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
             </div>
+
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1.5">Amount</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2 px-1">Monthly Limit</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-2.5 text-black font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
                 <input 
                   type="number" 
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full text-black bg-gray-50 border border-gray-200 rounded-lg p-2.5 pl-8 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                  className="w-full text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3 pl-8 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
                   required
                 />
               </div>
             </div>
+
             <button 
               type="submit" 
-              className="mt-3 w-full bg-black text-white py-2.5 rounded-lg hover:bg-gray-800 transition text-sm font-medium shadow-md"
+              disabled={loading || success}
+              className={`mt-2 w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-all font-bold text-sm shadow-md ${
+                success 
+                ? "bg-green-500 text-white" 
+                : "bg-amber-500 text-white hover:bg-amber-600 active:scale-95 disabled:opacity-70"
+              }`}
             >
-              Save Budget
+              {loading ? <Loader2 className="animate-spin" size={18} /> : success ? <Check size={18} /> : "Save Budget Goal"}
             </button>
           </form>
+          
+          <p className="mt-4 text-[10px] text-center text-slate-400 font-medium">
+            This budget will apply to {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </p>
         </div>
       )}
     </div>

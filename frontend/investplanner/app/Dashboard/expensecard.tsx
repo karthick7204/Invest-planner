@@ -36,13 +36,15 @@ export function ExpenseCard() {
   }, []);
 
   return (
-    <div className="w-90 h-38 bg-white rounded-lg shadow-md p-4">
-      <h2 className="text-md font-semibold text-mauve-400">Expenses</h2>
-      <p className="text-2xl font-bold text-black">
-        {loading ? "..." : `₹${totalExpense.toLocaleString()}`}
-      </p>
-      <div className="w-10 h-10 mt-2 rounded-full bg-red-100 flex items-center justify-center cursor-pointer hover:bg-red-200 transition">
-        <ArrowDown size={20} className="text-red-600" />
+    <div className="w-full h-full min-h-[9.5rem] bg-white rounded-xl shadow-sm p-5 flex flex-col justify-between border border-gray-100">
+      <div>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Expenses</h2>
+        <p className="text-3xl font-bold text-black mt-1">
+          {loading ? "..." : `₹${totalExpense.toLocaleString()}`}
+        </p>
+      </div>
+      <div className="w-10 h-10 mt-4 rounded-full bg-red-50 flex items-center justify-center cursor-pointer hover:bg-red-100 transition border border-red-100">
+        <ArrowDown size={20} className="text-red-500" />
       </div>
     </div>
   );

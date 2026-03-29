@@ -8,6 +8,8 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { savingsroute } from './routes/savingsroute.js';
 import { stocksRouter } from './routes/stocksRoute.js';
+import { dailyExpenseRouter } from './routes/dailyExpenseRoute.js';
+import { budgetRouter } from './routes/budgetRoute.js';
 import cors from "cors";
 const app = express();
 app.use(bodyParser.json());
@@ -21,6 +23,8 @@ app.use('/expense', expenserouter);
 app.use('/invest', investRouter);
 app.use('/target', savingsroute);
 app.use('/stocks', stocksRouter);
+app.use('/dailyexpense', dailyExpenseRouter);
+app.use('/budget', budgetRouter);
 mongoose.connect(MONGOURL).then(() => {
     console.log("mongodb connection successfull");
 }).catch((error) => {

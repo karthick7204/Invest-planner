@@ -1,13 +1,14 @@
 import React from 'react';
 interface ChartData {
-    day: string;
-    income: number;
+    day?: string;
+    name?: string;
     expenses: number;
 }
 interface IncomeExpensesChartProps {
     data?: ChartData[];
     title?: string;
     height?: number;
+    dataKey?: "day" | "name";
 }
 declare const IncomeExpensesChart: React.FC<IncomeExpensesChartProps>;
 export default IncomeExpensesChart;

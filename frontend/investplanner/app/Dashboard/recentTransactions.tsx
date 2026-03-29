@@ -159,7 +159,7 @@ export default function RecentTransaction() {
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 w-full">
+    <div className="bg-white hover:shadow-md transition-shadow duration-300 rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col w-full">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-800">Recent Transactions</h2>
@@ -180,13 +180,13 @@ export default function RecentTransaction() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="w-full overflow-x-auto rounded-md border border-gray-50">
+        <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-gray-200">
               <th className="text-left py-3 px-4 text-gray-600 font-medium text-sm">Merchant / Service</th>
               <th className="text-left py-3 px-4 text-gray-600 font-medium text-sm">Category</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-medium text-sm">Date</th>
+              <th className="text-left py-3 px-4 text-gray-600 font-medium text-sm hidden sm:table-cell">Date</th>
               <th className="text-right py-3 px-4 text-gray-600 font-medium text-sm">Amount</th>
             </tr>
           </thead>
@@ -207,10 +207,10 @@ export default function RecentTransaction() {
       </div>
 
       {/* Quick Add Expense Button - Always visible */}
-      <div className="mt-8 flex justify-end">
+      <div className="mt-8 flex justify-end shrink-0">
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
+          className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm hover:shadow-md"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -220,15 +220,15 @@ export default function RecentTransaction() {
       </div>
 
       {/* Pagination (only show when viewing all) */}
-      {showAll && transactionsData.length > 0 && (
-        <div className="mt-8">
+      <div className="empty:hidden mt-6">
+        {showAll && transactionsData.length > 0 && (
           <Pagination 
             totalPages={totalPages} 
             currentPage={currentPage} 
             onPageChange={handlePageChange}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Add Transaction Modal - with blur background */}
       <AddTransactionModal 

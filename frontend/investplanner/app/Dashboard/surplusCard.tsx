@@ -32,14 +32,16 @@ export function SurplusCard() {
   }, []);
 
   return (
-    <div className="w-90 h-38 bg-yellow-300 rounded-lg shadow-md p-4">
-      <h2 className="text-lg font-semibold text-black">Surplus</h2>
-      <p className="text-2xl font-bold text-black">
-        {loading ? "..." : `₹${surplus.toLocaleString()}`}
-      </p>
-        <div className='w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center cursor-pointer hover:bg-blue-200 transition' title="Surplus">
-        <Wallet size={20} className="text-blue-600" />
-        </div>
+    <div className="w-full h-full min-h-[9.5rem] bg-yellow-300 rounded-xl shadow-sm p-5 flex flex-col justify-between border border-yellow-400/50">
+      <div>
+        <h2 className="text-sm font-semibold text-yellow-900 uppercase tracking-wide">Surplus</h2>
+        <p className="text-3xl font-bold text-black mt-1">
+          {loading ? "..." : `₹${surplus.toLocaleString()}`}
+        </p>
+      </div>
+      <div className="w-10 h-10 mt-4 rounded-full bg-yellow-400 flex items-center justify-center cursor-pointer hover:bg-yellow-500 transition shadow-inner" title="Surplus">
+        <Wallet size={20} className="text-yellow-900" />
+      </div>
     </div>
   )
 }

@@ -13,8 +13,8 @@ import {
 } from 'recharts';
 
 interface ChartData {
-  day: string;
-  income: number;
+  day?: string;
+  name?: string;
   expenses: number;
 }
 
@@ -22,67 +22,69 @@ interface IncomeExpensesChartProps {
   data?: ChartData[];
   title?: string;
   height?: number;
+  dataKey?: "day" | "name";
 }
 
 const DEFAULT_DATA: ChartData[] = [
-  { day: 'Mon', income: 1050, expenses: 925 },
-  { day: 'Tue', income: 1075, expenses: 950 },
-  { day: 'Wed', income: 1050, expenses: 1075 },
-  { day: 'Thu', income: 1600, expenses: 775 },
-  { day: 'Fri', income: 1700, expenses: 1075 },
-  { day: 'Sat', income: 1000, expenses: 825 },
-  { day: 'Sun', income: 975, expenses: 725 },
+  { day: 'Mon', expenses: 925 },
+  { day: 'Tue', expenses: 950 },
+  { day: 'Wed', expenses: 1075 },
+  { day: 'Thu', expenses: 775 },
+  { day: 'Fri', expenses: 1075 },
+  { day: 'Sat', expenses: 825 },
+  { day: 'Sun', expenses: 725 },
 ];
 
 const IncomeExpensesChart: React.FC<IncomeExpensesChartProps> = ({
   data = DEFAULT_DATA,
-  title = 'Income vs Expenses',
+  title = 'Expense Analysis',
   height = 400,
+  dataKey = "day",
 }) => {
   return (
-    <div className="max-w-5xl w-4xl h-125 bg-white rounded-lg p-25 shadow-sm">
-      {title && (
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">{title}</h2>
-      )}
+    <div className="w-full h-full bg-white rounded-xl">
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={data}
-          margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+          margin={{ top: 20, right: 10, left: 10, bottom: 20 }}
+          barCategoryGap="20%"
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <defs>
+            <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity={1} />
+              <stop offset="100%" stopColor="#d97706" stopOpacity={0.8} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
           <XAxis
-            dataKey="day"
-            tick={{ fill: '#6b7280', fontSize: 13 }}
-            axisLine={{ stroke: '#e5e7eb' }}
+            dataKey={dataKey}
+            tick={{ fill: '#94a3b8', fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
           />
           <YAxis
-            tick={{ fill: '#6b7280', fontSize: 13 }}
-            axisLine={{ stroke: '#e5e7eb' }}
+            tick={{ fill: '#94a3b8', fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(value) => `₹${value}`}
           />
           <Tooltip
             contentStyle={{
               backgroundColor: '#ffffff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              border: 'none',
+              borderRadius: '12px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              padding: '12px'
             }}
-            cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-          />
-          <Legend
-            wrapperStyle={{ paddingTop: '20px' }}
-            iconType="circle"
-          />
-          <Bar
-            dataKey="income"
-            fill="#1f2928"
-            name="Income"
-            radius={[4, 4, 0, 0]}
+            cursor={{ fill: '#f8fafc' }}
+            formatter={(value: any) => [`₹${(Number(value) || 0).toLocaleString()}`, 'Expenses']}
           />
           <Bar
             dataKey="expenses"
-            fill="#f59e0b"
+            fill="url(#expenseGradient)"
             name="Expenses"
-            radius={[4, 4, 0, 0]}
+            radius={[6, 6, 0, 0]}
+            barSize={data.length > 10 ? undefined : 45}
           />
         </BarChart>
       </ResponsiveContainer>
