@@ -11,7 +11,7 @@ const CATEGORY_DATA = [
     { id: '4', category: 'Entertainment', amountSpent: '₹450', percentageOfSalary: 9 },
     { id: '5', category: 'Savings & Invest', amountSpent: '₹845', percentageOfSalary: 18 },
 ];
-function CategoryBreakdown() {
+function CategoryBreakdown({ range }) {
     const [selectedMonth, setSelectedMonth] = (0, react_1.useState)(new Date().getMonth());
     const [selectedYear, setSelectedYear] = (0, react_1.useState)(new Date().getFullYear());
     const [showDropdown, setShowDropdown] = (0, react_1.useState)(false);

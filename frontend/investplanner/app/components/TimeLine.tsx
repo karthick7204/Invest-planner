@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+interface TimeLineProps {
+    range: string;
+    setRange: (range: string) => void;
+}
 
-export function TimeLine() {
-    const [activeTab, setActiveTab] = useState('monthly');
-
+export function TimeLine({ range, setRange }: TimeLineProps) {
     const tabs = ['Monthly', 'Quarterly', 'Yearly'];
 
     return(
@@ -12,9 +13,9 @@ export function TimeLine() {
              {tabs.map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab.toLowerCase())}
+                onClick={() => setRange(tab.toLowerCase())}
                 className={`flex-1 py-3 px-4 font-semibold cursor-pointer transition  ${
-                  activeTab === tab.toLowerCase()
+                  range === tab.toLowerCase()
                     ? 'bg-yellow-400 text-white shadow-md'
                     : 'bg-white text-gray-600 hover:bg-gray-50'
                 }`}
@@ -23,6 +24,5 @@ export function TimeLine() {
               </button>
              ))}
            </div>
-           
     )
 }

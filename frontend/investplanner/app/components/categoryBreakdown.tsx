@@ -9,6 +9,10 @@ interface CategoryData {
   percentageOfSalary: number;
 }
 
+interface CategoryBreakdownProps {
+  range: string;
+}
+
 const CATEGORY_DATA: CategoryData[] = [
   { id: '1', category: 'Housing', amountSpent: '₹2,150', percentageOfSalary: 45 },
   { id: '2', category: 'Food & Dining', amountSpent: '₹920', percentageOfSalary: 19 },
@@ -17,7 +21,7 @@ const CATEGORY_DATA: CategoryData[] = [
   { id: '5', category: 'Savings & Invest', amountSpent: '₹845', percentageOfSalary: 18 },
 ];
 
-export default function CategoryBreakdown() {
+export default function CategoryBreakdown({ range }: CategoryBreakdownProps) {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showDropdown, setShowDropdown] = useState(false);

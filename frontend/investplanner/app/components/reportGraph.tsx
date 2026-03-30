@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { apiCall } from '../lib/api';
 
 interface SpendingData {
   category: string;
@@ -17,18 +18,17 @@ interface SpendingData {
   spending: number;
 }
 
-const SPENDING_DATA: SpendingData[] = [
-  { category: 'Housing', budget: 2200, spending: 2100 },
-  { category: 'Food & Dining', budget: 950, spending: 850 },
-  { category: 'Transport', budget: 400, spending: 350 },
-  { category: 'Entertainment', budget: 500, spending: 450 },
-  { category: 'Utilities', budget: 300, spending: 280 },
-];
+interface ReportGraphProps {
+  range: string;
+}
 
-export default function ReportGraph() {
+export default function ReportGraph({ range }: ReportGraphProps) {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showDropdown, setShowDropdown] = useState(false);
+  const [spendingData, setSpendingData] = useState<SpendingData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 
                    'July', 'August', 'September', 'October', 'November', 'December'];
@@ -36,6 +36,38 @@ export default function ReportGraph() {
   const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
 
   const displayDate = `${months[selectedMonth]} ${selectedYear}`;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Format month and year into "YYYY-MM"
+        const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
+        const formattedDate = `${selectedYear}-${monthStr}`;
+        
+        const response = await apiCall(`/budget?month=${formattedDate}&range=${range}`);
+        
+        if (response && response.budgets) {
+          const mappedData = response.budgets.map((b: any) => ({
+            category: b.category,
+            budget: b.limit,
+            spending: b.spent
+          }));
+          setSpendingData(mappedData);
+        } else {
+          setSpendingData([]);
+        }
+      } catch (err) {
+        console.error("Error fetching spending data:", err);
+        setError("Failed to load data. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedMonth, selectedYear, range]);
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
@@ -106,41 +138,58 @@ export default function ReportGraph() {
       </div>
 
       {/* Chart */}
-      <ResponsiveContainer width="100%" height={350}>
-        <BarChart data={SPENDING_DATA} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-          <XAxis
-            dataKey="category"
-            tick={{ fill: '#6b7280', fontSize: 12 }}
-            axisLine={{ stroke: '#e5e7eb' }}
-          />
-          <YAxis
-            tick={{ fill: '#6b7280', fontSize: 12 }}
-            axisLine={{ stroke: '#e5e7eb' }}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            }}
-            cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-          />
-          <Bar
-            dataKey="budget"
-            fill="#e5e7eb"
-            radius={[4, 4, 0, 0]}
-            name="Budget"
-          />
-          <Bar
-            dataKey="spending"
-            fill="#facc15"
-            radius={[4, 4, 0, 0]}
-            name="Spending"
-          />
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="relative h-[350px]">
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="absolute inset-0 flex items-center justify-center text-red-500 font-medium">
+            {error}
+          </div>
+        ) : spendingData.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-medium italic">
+            No budget data found for {displayDate}
+          </div>
+        ) : null}
+
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={spendingData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+            <XAxis
+              dataKey="category"
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              axisLine={{ stroke: '#e5e7eb' }}
+            />
+            <YAxis
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              axisLine={{ stroke: '#e5e7eb' }}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              }}
+              cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+              formatter={(value: any) => `₹${(Number(value) || 0).toLocaleString()}`}
+            />
+            <Bar
+              dataKey="budget"
+              fill="#e5e7eb"
+              radius={[4, 4, 0, 0]}
+              name="Budget"
+            />
+            <Bar
+              dataKey="spending"
+              fill="#facc15"
+              radius={[4, 4, 0, 0]}
+              name="Spending"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* Legend */}
       <div className="flex justify-center gap-8 mt-6">
@@ -155,4 +204,4 @@ export default function ReportGraph() {
       </div>
     </div>
   );
-}
+}
