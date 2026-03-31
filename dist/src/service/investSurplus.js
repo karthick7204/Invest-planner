@@ -1,6 +1,6 @@
 export const surplus = async (totalIncome, totalExpense) => {
     try {
-        const surplusAmount = totalIncome - totalExpense;
+        const surplusAmount = Math.max(0, totalIncome - totalExpense);
         return surplusAmount;
     }
     catch (error) {

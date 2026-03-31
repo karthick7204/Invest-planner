@@ -8,15 +8,23 @@ export const setBudget = async (req: authRequest, res: Response) => {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const { category, limit, month } = req.body;
+    let { category, limit, month } = req.body;
     if (!category || limit === undefined || !month) {
         return res.status(400).json({ message: "category, limit, and month (YYYY-MM) are required" });
     }
 
+    // Normalize category to avoid duplicates like "Rent" and "rent"
+    const normalizedCategory = category.trim();
+
     try {
+        // Use a case-insensitive find to update existing category regardless of casing
         const updatedBudget = await budget.findOneAndUpdate(
-            { user: userId, category, month },
-            { limit },
+            { 
+                user: userId, 
+                category: { $regex: new RegExp(`^${normalizedCategory}$`, 'i') }, 
+                month 
+            },
+            { limit, category: normalizedCategory }, // Update with the provided casing
             { new: true, upsert: true }
         );
         return res.status(200).json({ budget: updatedBudget });
@@ -67,15 +75,20 @@ export const getBudgets = async (req: authRequest, res: Response) => {
         // Get budgets for the range
         const budgets = await budget.find(budgetQuery);
         
-        // Sum limits by category across the range
-        // If a category has multiple budgets (e.g., in a quarterly view), we sum their limits
-        const aggregatedBudgetsMap = new Map<string, number>();
+        // Sum limits by category across the range and keep track of IDs
+        // Normalize categories to lowercase for consistent matching
+        const aggregatedBudgetsMap = new Map<string, { limit: number, ids: string[], originalCategory: string }>();
         budgets.forEach(b => {
-            const current = aggregatedBudgetsMap.get(b.category) || 0;
-            aggregatedBudgetsMap.set(b.category, current + b.limit);
+            const lowerCat = b.category.toLowerCase();
+            const current = aggregatedBudgetsMap.get(lowerCat) || { limit: 0, ids: [], originalCategory: b.category };
+            aggregatedBudgetsMap.set(lowerCat, {
+                limit: current.limit + b.limit,
+                ids: [...current.ids, b._id.toString()],
+                originalCategory: current.originalCategory // Keep the first casing encountered
+            });
         });
 
-        // Get spending aggregated by category for the range
+        // Get spending aggregated by category for the range (case-insensitive)
         const spending = await expense.aggregate([
             {
                 $match: {
@@ -85,27 +98,24 @@ export const getBudgets = async (req: authRequest, res: Response) => {
             },
             {
                 $group: {
-                    _id: "$category",
+                    _id: { $toLower: "$category" },
                     spent: { $sum: "$amount" }
                 }
             }
         ]);
 
-        // Combine logic: all categories that have a budget OR have spending
-        const categories = new Set([
-            ...aggregatedBudgetsMap.keys(),
-            ...spending.map(s => s._id as string)
-        ]);
-
-        const result = Array.from(categories).map(cat => {
-            const limit = aggregatedBudgetsMap.get(cat) || 0;
-            const spent = spending.find(s => s._id === cat)?.spent || 0;
+        // Filter: ONLY show categories that have an explicit budget record
+        const result = Array.from(aggregatedBudgetsMap.keys()).map(lowerCat => {
+            const budgetData = aggregatedBudgetsMap.get(lowerCat)!;
+            const spent = spending.find(s => s._id === lowerCat)?.spent || 0;
             return {
-                category: cat,
-                limit,
+                _id: budgetData.ids[0], // Use the first found ID for deletion
+                additionalIds: budgetData.ids.slice(1),
+                category: budgetData.originalCategory, // Display original casing
+                limit: budgetData.limit,
                 spent,
-                remaining: Math.max(0, limit - spent),
-                isExceeded: spent > limit
+                remaining: Math.max(0, budgetData.limit - spent),
+                isExceeded: spent > budgetData.limit
             };
         });
 
@@ -115,7 +125,6 @@ export const getBudgets = async (req: authRequest, res: Response) => {
         return res.status(500).json({ message: "Error getting budgets", error });
     }
 };
-
 export const deleteBudget = async (req: authRequest, res: Response) => {
     const userId = req.userId;
     const { budgetId } = req.params;

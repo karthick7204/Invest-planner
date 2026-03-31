@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, TrendingUp, Settings, LogOut, ChevronRight, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, FileText, TrendingUp, Settings, LogOut, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 
 export default function Sidebar(){  
     const router = useRouter();
@@ -41,33 +41,41 @@ export default function Sidebar(){
             <aside 
                 className={`fixed top-0 mt-12 lg:mt-0 lg:top-12 left-0 h-[calc(100vh-3rem)] lg:h-screen w-64 bg-[#ffffff] border-r-2 border-gray-200 shadow-xl p-4 z-40 transition-transform duration-300 ease-in-out overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
             >
-                <h2 className="text-xl font-bold mb-4"></h2> 
-                <ul className="flex flex-col h-full">
-                    <li className="mb-2 cursor-pointer flex flex-col mt-4">
+                <ul className="flex flex-col h-full gap-1 mt-4">
+                    <li className="cursor-pointer">
                         <button 
                           onClick={() => handleNavigation('dashboard')} 
-                          className="cursor-pointer text-black flex items-center gap-3 w-full p-2 rounded hover:bg-gray-100 transition"
+                          className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 ${pathname === '/dashboard' ? 'bg-black text-white shadow-lg shadow-gray-200' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
-                           <LayoutDashboard size={20} />
-                          <span>Dashboard</span>
+                           <LayoutDashboard size={18} strokeWidth={pathname === '/dashboard' ? 2.5 : 2} />
+                          <span className="font-bold text-sm">Dashboard</span>
                         </button>
                     </li>
-                    <li className="mb-2 cursor-pointer">
+                    <li className="cursor-pointer">
                         <button 
                           onClick={() => handleNavigation('reports')} 
-                          className="cursor-pointer text-black flex items-center gap-3 w-full p-2 rounded hover:bg-gray-100 transition"
+                          className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 ${pathname === '/reports' ? 'bg-black text-white shadow-lg shadow-gray-200' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
-                            <FileText size={20} />
-                            <span>Reports</span>
+                            <FileText size={18} strokeWidth={pathname === '/reports' ? 2.5 : 2} />
+                            <span className="font-bold text-sm">Reports</span>
                         </button>
                     </li>
-                    <li className="mb-2 cursor-pointer">
+                    <li className="cursor-pointer font-bold">
+                        <button 
+                          onClick={() => handleNavigation('ai-insights')} 
+                          className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 ${pathname === '/ai-insights' ? 'bg-black text-white shadow-lg shadow-gray-200' : 'text-gray-600 hover:bg-gray-100'}`}
+                        >
+                            <Sparkles size={18} strokeWidth={pathname === '/ai-insights' ? 2.5 : 2} />
+                            <span className="text-sm">AI Insights</span>
+                        </button>
+                    </li>
+                    <li className="cursor-pointer">
                         <button 
                           onClick={() => handleNavigation('stocksuggestions')} 
-                          className="cursor-pointer text-black text-[15px] flex items-center gap-3 w-full p-2 rounded hover:bg-gray-100 transition"
+                          className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 ${pathname === '/stocksuggestions' ? 'bg-black text-white shadow-lg shadow-gray-200' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
-                          <TrendingUp size={20} />
-                          <span>Stock Suggestion</span>
+                          <TrendingUp size={18} strokeWidth={pathname === '/stocksuggestions' ? 2.5 : 2} />
+                          <span className="font-bold text-sm">Stock Suggestion</span>
                         </button>
                     </li>
                     
