@@ -29,13 +29,22 @@ export default function LoginCard() {
         console.log("Login successful:", response);
   
         // ✅ If we reach here, login was successful
-        // Store token if backend returns one
-        if (response.data.token) {
-          localStorage.setItem("authToken", response.data.token);
-          console.log("✅ Token saved to localStorage");
-          console.log("✅ Verify:", localStorage.getItem("authToken"));
+        // Store token and userId if backend returns them
+        const token = response.token || response.data?.token;
+        const userData = response.userdata || response.data?.userdata || response.data?.saveduser;
+        const userId = userData?._id || response.userId || response.data?.userId;
 
+        if (token) {
+          localStorage.setItem("authToken", token);
+          console.log("✅ Token saved to localStorage");
         }
+        
+        if (userId) {
+          localStorage.setItem("userId", userId);
+          console.log("✅ UserId saved to localStorage:", userId);
+        }
+
+        console.log("✅ Identity Verify:", localStorage.getItem("authToken") ? "Token exists" : "No token", localStorage.getItem("userId"));
   
         // ✅ Navigate to dashboard
         router.push("/dashboard");

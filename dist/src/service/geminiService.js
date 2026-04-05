@@ -52,4 +52,74 @@ export const generateAIInsights = async (userData) => {
         throw error;
     }
 };
+export const generateAIInsightsStrict = async (userData) => {
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error("Missing Gemini API Key. Please add GEMINI_API_KEY to your .env file.");
+    }
+    const prompt = `
+    You are a financial assistant.
+    Analyze the user's financial data.
+    
+    Rules:
+    - If expenses > salary → flag overspending
+    - If surplus < 10% of salary → flag low savings
+    - Identify top spending categories
+    - Suggest how to reduce expenses
+    - Suggest how to improve investments
+    
+    Keep output clean and short:
+    Title: ...
+    Insights: - ...
+    Suggestions: - ...
+    Investment Advice: - ...
+    
+    Return the response ONLY in JSON format following this interface:
+    {
+      "title": string,
+      "insights": string[],
+      "suggestions": string[],
+      "investmentAdvice": string[]
+    }
+    
+    User Data:
+    ${JSON.stringify(userData, null, 2)}
+  `;
+    try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        // Clean JSON if the model returns Markdown blocks or extra text
+        let jsonStr = text.trim();
+        // Extract JSON using regex if it's wrapped in code blocks
+        const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (jsonMatch && jsonMatch[1]) {
+            jsonStr = jsonMatch[1].trim();
+        }
+        // Final defensive check to get only the JSON part
+        const startIdx = jsonStr.indexOf('{');
+        const endIdx = jsonStr.lastIndexOf('}');
+        if (startIdx !== -1 && endIdx !== -1) {
+            jsonStr = jsonStr.substring(startIdx, endIdx + 1);
+        }
+        try {
+            return JSON.parse(jsonStr);
+        }
+        catch (parseError) {
+            console.error("⚠️ Gemini JSON Parse Fallback triggered:", parseError);
+            return getFallbackResponse();
+        }
+    }
+    catch (error) {
+        console.error("❌ Gemini AI generation failed:", error);
+        return getFallbackResponse();
+    }
+};
+const getFallbackResponse = () => {
+    return {
+        title: "Wealth AI Analysis (Draft)",
+        insights: ["Analyzed your recent transactions and income profiles."],
+        suggestions: ["Monitor your top categories for potential savings opportunities."],
+        investmentAdvice: ["Consider diversifying into index funds once your surplus is stable and liquid."]
+    };
+};
 //# sourceMappingURL=geminiService.js.map

@@ -10,6 +10,7 @@ import { savingsroute } from './routes/savingsroute.js';
 import {stocksRouter } from './routes/stocksRoute.js';
 import { dailyExpenseRouter } from './routes/dailyExpenseRoute.js';
 import { budgetRouter } from './routes/budgetRoute.js';
+import aiRouter from './routes/aiRoutes.js';
 import cors from "cors";
 
 const app = express();
@@ -27,6 +28,7 @@ app.use('/target',savingsroute)
 app.use('/stocks',stocksRouter)
 app.use('/dailyexpense', dailyExpenseRouter)
 app.use('/budget', budgetRouter)
+app.use('/api/ai', aiRouter)
 
 mongoose.connect(MONGOURL).then(()=>{
     console.log("mongodb connection successfull")

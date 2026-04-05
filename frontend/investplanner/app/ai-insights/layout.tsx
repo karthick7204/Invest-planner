@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Header from "@/app/header/header";
+import Header from "../header/header";
 import Sidebar from "../sidebar/sidebar";
 
 export const metadata: Metadata = {
@@ -13,19 +13,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <body className="antialiased">
+    <div className="flex flex-col h-screen w-full lg:pl-64 bg-[#f6f7f6]">
       <Sidebar />
-      <div className="flex flex-col h-screen w-full lg:pl-64 bg-[#fbfbfb]">
-        {/* Fixed Header */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
-          <Header />
-        </div>
-
-        {/* Scrollable Content */}
-        <main className="mt-16 flex-1 overflow-x-hidden overflow-y-auto font-poppins">
-          {children}
-        </main>
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-zinc-800">
+        <Header />
       </div>
-    </body>
+
+      {/* Scrollable Content */}
+      <main className="mt-12 flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 font-poppins">
+        {children}
+      </main>
+    </div>
   );
 }

@@ -12,5 +12,12 @@ export interface AIInsightResponse {
         netWorthVelocity: string;
     };
 }
+export interface AIInsightResponseStrict {
+    title: string;
+    insights: string[];
+    suggestions: string[];
+    investmentAdvice: string[];
+}
 export declare const generateAIInsights: (userData: string) => Promise<AIInsightResponse>;
+export declare const generateAIInsightsStrict: (userData: any) => Promise<AIInsightResponseStrict>;
 //# sourceMappingURL=geminiService.d.ts.map
