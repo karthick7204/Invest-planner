@@ -33,6 +33,7 @@ function AIInsightsPage() {
             const result = await (0, api_1.apiCall)(`api/ai/insights/${userId}`, {
                 method: "POST"
             });
+            console.log("💎 Wealth AI Response Data:", result);
             setAnalysis(result);
         }
         catch (err) {

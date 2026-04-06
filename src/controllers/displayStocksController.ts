@@ -14,19 +14,28 @@ export const displayStocks = async (req: authRequest, res: Response) => {
     }
     try{
        const stocks = await nse.getEquityStockIndices("NIFTY 100")
-       const stockSymbol = stocks.data.map((stock)=> ({
+       if (!stocks || !stocks.data) {
+           throw new Error("Failed to fetch stocks from NSE - empty response");
+       }
+       
+       const stockSymbol = stocks.data.map((stock: any)=> ({
         symbol:stock.symbol,
         lastprice:stock.lastPrice
        }));
-        const Income_total = await totalIncomeAmount(userId)
-        const Expense_total = await totalExpenseAmount(userId)
-        const surplusamount = await surplus(Income_total,Expense_total) 
-        const stockList = stockCalculator(stockSymbol,surplusamount);
+       
+       console.log("Calculating surplus for user:", userId);
+       const Income_total = await totalIncomeAmount(userId)
+       const Expense_total = await totalExpenseAmount(userId)
+       const surplusamount = await surplus(Income_total,Expense_total) 
+       const stockList = stockCalculator(stockSymbol,surplusamount);
       
-        return res.status(200).json({ stockList })
+       return res.status(200).json({ stockList })
 
-}catch(error){
-    console.log("displayStocks error", error)
-    return res.status(500).json({ message: "internal error-displayStocks" })
+}catch(error: any){
+    console.error("displayStocks error details:", error) 
+    return res.status(500).json({ 
+        message: "internal error-displayStocks", 
+        error: error.message || String(error)
+    })
 }
 }

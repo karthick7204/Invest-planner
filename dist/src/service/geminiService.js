@@ -88,6 +88,11 @@ export const generateAIInsightsStrict = async (userData) => {
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
+        // --- DEBUG LOG FOR THE USER ---
+        console.log("-----------------------------------------");
+        console.log("🔮 RAW LLM RESPONSE:");
+        console.log(text);
+        console.log("-----------------------------------------");
         // Clean JSON if the model returns Markdown blocks or extra text
         let jsonStr = text.trim();
         // Extract JSON using regex if it's wrapped in code blocks

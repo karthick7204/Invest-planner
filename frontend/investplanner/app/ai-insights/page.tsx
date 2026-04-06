@@ -97,6 +97,7 @@ export default function AIInsightsPage() {
         method: "POST"
       });
 
+      console.log("💎 Wealth AI Response Data:", result);
       setAnalysis(result);
     } catch (err: any) {
         console.error("Fetch AI Insights error:", err);
