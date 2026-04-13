@@ -28,7 +28,7 @@ app.use('/target',savingsroute)
 app.use('/stocks',stocksRouter)
 app.use('/dailyexpense', dailyExpenseRouter)
 app.use('/budget', budgetRouter)
-app.use('/api/ai', aiRouter)
+app.use('/ai', aiRouter)
 
 mongoose.connect(MONGOURL).then(()=>{
     console.log("mongodb connection successfull")

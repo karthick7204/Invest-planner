@@ -14,6 +14,7 @@ import {
   RefreshCcw
 } from 'lucide-react';
 import { apiCall } from '../lib/api';
+import { InsightCard } from './InsightCard';
 
 // --- Types ---
 interface CategoryExpense {
@@ -80,8 +81,11 @@ export default function AIInsightsPage() {
   const [analysis, setAnalysis] = useState<AIInsightResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isProduction = process.env.NODE_ENV === 'production';
 
   const fetchInsights = async () => {
+    if (isProduction) return; // Skip logic in production
+    
     setLoading(true);
     setError(null);
     try {
@@ -93,7 +97,7 @@ export default function AIInsightsPage() {
       }
 
       // We call the real backend AI Insights API
-      const result = await apiCall(`api/ai/insights/${userId}`, {
+      const result = await apiCall(`ai/insights/${userId}`, {
         method: "POST"
       });
 
@@ -108,8 +112,34 @@ export default function AIInsightsPage() {
   };
 
   useEffect(() => {
-    fetchInsights();
+    if (!isProduction) {
+        fetchInsights();
+    } else {
+        setLoading(false);
+    }
   }, []);
+
+  if (isProduction) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-20 text-center space-y-6">
+        <div className="w-24 h-24 bg-zinc-900 rounded-3xl flex items-center justify-center shadow-xl border border-white/10 animate-in zoom-in duration-500">
+            <SparkleIcon className="text-amber-500" size={48} />
+        </div>
+        <div className="space-y-4">
+            <h1 className="text-4xl font-black tracking-tight text-zinc-900 italic">AI INSIGHTS</h1>
+            <p className="text-zinc-500 font-medium text-lg max-w-sm mx-auto">
+                Our artificial intelligence engine is currently <span className="text-zinc-900 font-bold underline decoration-amber-500 decoration-2 underline-offset-4">under construction</span> for live accounts.
+            </p>
+        </div>
+        <div className="pt-10 flex items-center gap-4">
+            <div className="h-px w-12 bg-zinc-200" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Coming Soon</span>
+            <div className="h-px w-12 bg-zinc-200" />
+        </div>
+      </div>
+    );
+  }
+
 
   const healthScore = useMemo(() => {
     if (!analysis) return 0;
@@ -171,7 +201,11 @@ export default function AIInsightsPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <span className="px-2.5 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md">Live Platform Analysis</span>
+                {isProduction && (
+                  <span className="px-2.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-amber-100">Development Preview</span>
+                )}
               </div>
+
               <h1 className="text-4xl font-bold tracking-tight text-gray-900">{title || "AI Deep Insights"}</h1>
               <p className="text-gray-500 font-medium">Smart financial auditing with real-time feedback loops. Data sourced from your recent transactions.</p>
             </div>
@@ -186,6 +220,8 @@ export default function AIInsightsPage() {
               </button>
             </div>
           </div>
+
+          <InsightCard />
 
           {/* 1. Top Alert Card */}
           {(isOverspending || isLowSurplus) && (

@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 dotenv.config();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: "v1" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 export const generateAIInsights = async (userData) => {
     if (!process.env.GEMINI_API_KEY) {
         throw new Error("Missing Gemini API Key. Please add GEMINI_API_KEY to your .env file.");
@@ -117,6 +117,54 @@ export const generateAIInsightsStrict = async (userData) => {
     catch (error) {
         console.error("❌ Gemini AI generation failed:", error);
         return getFallbackResponse();
+    }
+};
+export const generateNaturalLanguageInsight = async (insightPayload) => {
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error("Missing Gemini API Key. Please add GEMINI_API_KEY to your .env file.");
+    }
+    const prompt = `
+    You are a personal finance assistant. Analyze this spending data and write a 3-4 sentence natural language summary.
+    Include: which day this week had the highest spend and in which category, which category will overspend this month based on projectedTotal, and one specific actionable suggestion to spend less mentioning the category and a ₹ amount to cut. 
+    Write as a short flowing paragraph, no bullet points, use ₹ for amounts, friendly but direct tone.
+
+    If there is no spending data for this week, mention that and suggest a general tip based on the monthly projections.
+
+    Data:
+    ${JSON.stringify(insightPayload, null, 2)}
+  `;
+    try {
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            safetySettings: [
+                {
+                    category: "HARM_CATEGORY_HARASSMENT",
+                    threshold: "BLOCK_NONE",
+                },
+                {
+                    category: "HARM_CATEGORY_HATE_SPEECH",
+                    threshold: "BLOCK_NONE",
+                },
+                {
+                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold: "BLOCK_NONE",
+                },
+                {
+                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold: "BLOCK_NONE",
+                },
+            ],
+        });
+        const response = await result.response;
+        const text = response.text();
+        if (!text)
+            throw new Error("Empty response from Gemini");
+        return text.trim();
+    }
+    catch (error) {
+        console.error("❌ Gemini Natural Language Insight generation failed:", error);
+        // Returning a more descriptive error for debugging
+        return `Analysis currently unavailable. (Error: ${error.message || "Unknown AI error"})`;
     }
 };
 const getFallbackResponse = () => {

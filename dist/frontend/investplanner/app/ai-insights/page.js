@@ -6,6 +6,7 @@ const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const lucide_react_1 = require("lucide-react");
 const api_1 = require("../lib/api");
+const InsightCard_1 = require("./InsightCard");
 // --- Card Components ---
 const Card = ({ children, className = "" }) => ((0, jsx_runtime_1.jsx)("div", { className: `bg-white rounded-3xl border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-md hover:border-gray-200 ${className}`, children: children }));
 const CardHeader = ({ title, icon: Icon, accentColor }) => ((0, jsx_runtime_1.jsxs)("div", { className: "flex items-center gap-4 mb-8", children: [(0, jsx_runtime_1.jsx)("div", { className: `w-10 h-10 rounded-xl flex items-center justify-center ${accentColor}`, children: (0, jsx_runtime_1.jsx)(Icon, { size: 22 }) }), (0, jsx_runtime_1.jsx)("h3", { className: "text-xl font-bold tracking-tight text-gray-900", children: title })] }));
@@ -20,7 +21,10 @@ function AIInsightsPage() {
     const [analysis, setAnalysis] = (0, react_1.useState)(null);
     const [loading, setLoading] = (0, react_1.useState)(true);
     const [error, setError] = (0, react_1.useState)(null);
+    const isProduction = process.env.NODE_ENV === 'production';
     const fetchInsights = async () => {
+        if (isProduction)
+            return; // Skip logic in production
         setLoading(true);
         setError(null);
         try {
@@ -30,7 +34,7 @@ function AIInsightsPage() {
                 throw new Error("User ID not found. Please log in again.");
             }
             // We call the real backend AI Insights API
-            const result = await (0, api_1.apiCall)(`api/ai/insights/${userId}`, {
+            const result = await (0, api_1.apiCall)(`ai/insights/${userId}`, {
                 method: "POST"
             });
             console.log("💎 Wealth AI Response Data:", result);
@@ -45,8 +49,16 @@ function AIInsightsPage() {
         }
     };
     (0, react_1.useEffect)(() => {
-        fetchInsights();
+        if (!isProduction) {
+            fetchInsights();
+        }
+        else {
+            setLoading(false);
+        }
     }, []);
+    if (isProduction) {
+        return ((0, jsx_runtime_1.jsxs)("div", { className: "min-h-[80vh] flex flex-col items-center justify-center p-20 text-center space-y-6", children: [(0, jsx_runtime_1.jsx)("div", { className: "w-24 h-24 bg-zinc-900 rounded-3xl flex items-center justify-center shadow-xl border border-white/10 animate-in zoom-in duration-500", children: (0, jsx_runtime_1.jsx)(SparkleIcon, { className: "text-amber-500", size: 48 }) }), (0, jsx_runtime_1.jsxs)("div", { className: "space-y-4", children: [(0, jsx_runtime_1.jsx)("h1", { className: "text-4xl font-black tracking-tight text-zinc-900 italic", children: "AI INSIGHTS" }), (0, jsx_runtime_1.jsxs)("p", { className: "text-zinc-500 font-medium text-lg max-w-sm mx-auto", children: ["Our artificial intelligence engine is currently ", (0, jsx_runtime_1.jsx)("span", { className: "text-zinc-900 font-bold underline decoration-amber-500 decoration-2 underline-offset-4", children: "under construction" }), " for live accounts."] })] }), (0, jsx_runtime_1.jsxs)("div", { className: "pt-10 flex items-center gap-4", children: [(0, jsx_runtime_1.jsx)("div", { className: "h-px w-12 bg-zinc-200" }), (0, jsx_runtime_1.jsx)("span", { className: "text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400", children: "Coming Soon" }), (0, jsx_runtime_1.jsx)("div", { className: "h-px w-12 bg-zinc-200" })] })] }));
+    }
     const healthScore = (0, react_1.useMemo)(() => {
         if (!analysis)
             return 0;
@@ -72,7 +84,7 @@ function AIInsightsPage() {
     const { metrics, insights, suggestions, investmentAdvice, title } = analysis;
     const isOverspending = metrics.total_expenses > metrics.salary;
     const isLowSurplus = !isOverspending && (metrics.surplus < metrics.salary * 0.1);
-    return ((0, jsx_runtime_1.jsx)("div", { className: "min-h-full", children: (0, jsx_runtime_1.jsxs)("div", { className: "max-w-5xl mx-auto px-6 py-12 space-y-10", children: [(0, jsx_runtime_1.jsxs)("div", { className: "flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-gray-100 pb-10", children: [(0, jsx_runtime_1.jsxs)("div", { className: "space-y-1", children: [(0, jsx_runtime_1.jsx)("div", { className: "flex items-center gap-3", children: (0, jsx_runtime_1.jsx)("span", { className: "px-2.5 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md", children: "Live Platform Analysis" }) }), (0, jsx_runtime_1.jsx)("h1", { className: "text-4xl font-bold tracking-tight text-gray-900", children: title || "AI Deep Insights" }), (0, jsx_runtime_1.jsx)("p", { className: "text-gray-500 font-medium", children: "Smart financial auditing with real-time feedback loops. Data sourced from your recent transactions." })] }), (0, jsx_runtime_1.jsx)("div", { className: "flex items-center gap-3", children: (0, jsx_runtime_1.jsx)("button", { onClick: fetchInsights, className: "w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-zinc-800 hover:text-white transition-all shadow-sm border border-gray-100", title: "Refresh analysis", children: (0, jsx_runtime_1.jsx)(lucide_react_1.RefreshCcw, { size: 18 }) }) })] }), (isOverspending || isLowSurplus) && ((0, jsx_runtime_1.jsxs)("div", { className: `group rounded-[2rem] p-8 border flex items-start gap-6 transition-all duration-500 animate-in slide-in-from-top-4 ${isOverspending
+    return ((0, jsx_runtime_1.jsx)("div", { className: "min-h-full", children: (0, jsx_runtime_1.jsxs)("div", { className: "max-w-5xl mx-auto px-6 py-12 space-y-10", children: [(0, jsx_runtime_1.jsxs)("div", { className: "flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-gray-100 pb-10", children: [(0, jsx_runtime_1.jsxs)("div", { className: "space-y-1", children: [(0, jsx_runtime_1.jsxs)("div", { className: "flex items-center gap-3", children: [(0, jsx_runtime_1.jsx)("span", { className: "px-2.5 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md", children: "Live Platform Analysis" }), isProduction && ((0, jsx_runtime_1.jsx)("span", { className: "px-2.5 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-amber-100", children: "Development Preview" }))] }), (0, jsx_runtime_1.jsx)("h1", { className: "text-4xl font-bold tracking-tight text-gray-900", children: title || "AI Deep Insights" }), (0, jsx_runtime_1.jsx)("p", { className: "text-gray-500 font-medium", children: "Smart financial auditing with real-time feedback loops. Data sourced from your recent transactions." })] }), (0, jsx_runtime_1.jsx)("div", { className: "flex items-center gap-3", children: (0, jsx_runtime_1.jsx)("button", { onClick: fetchInsights, className: "w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-zinc-800 hover:text-white transition-all shadow-sm border border-gray-100", title: "Refresh analysis", children: (0, jsx_runtime_1.jsx)(lucide_react_1.RefreshCcw, { size: 18 }) }) })] }), (0, jsx_runtime_1.jsx)(InsightCard_1.InsightCard, {}), (isOverspending || isLowSurplus) && ((0, jsx_runtime_1.jsxs)("div", { className: `group rounded-[2rem] p-8 border flex items-start gap-6 transition-all duration-500 animate-in slide-in-from-top-4 ${isOverspending
                         ? 'bg-red-50/50 border-red-100/50'
                         : 'bg-amber-50/50 border-amber-100/50'}`, children: [(0, jsx_runtime_1.jsx)("div", { className: `p-4 rounded-2xl shrink-0 group-hover:scale-110 transition-transform duration-500 shadow-inner ${isOverspending ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`, children: isOverspending ? (0, jsx_runtime_1.jsx)(lucide_react_1.AlertTriangle, { size: 28 }) : (0, jsx_runtime_1.jsx)(lucide_react_1.Info, { size: 28 }) }), (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("h2", { className: `text-xl font-bold tracking-tight ${isOverspending ? 'text-red-900' : 'text-amber-900'}`, children: isOverspending ? 'Critical Overspending Alert' : 'Low Component Surplus' }), (0, jsx_runtime_1.jsx)("p", { className: `text-[15px] mt-2 leading-relaxed font-medium ${isOverspending ? 'text-red-800/70' : 'text-amber-800/70'}`, children: isOverspending
                                         ? `System analysis indicates your current monthly burn of ₹${metrics.total_expenses.toLocaleString('en-IN')} is exceeding your income. This trajectory will deplete cash reserves by ₹${Math.abs(metrics.surplus).toLocaleString('en-IN')} each month.`

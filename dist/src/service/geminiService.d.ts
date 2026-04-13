@@ -20,4 +20,5 @@ export interface AIInsightResponseStrict {
 }
 export declare const generateAIInsights: (userData: string) => Promise<AIInsightResponse>;
 export declare const generateAIInsightsStrict: (userData: any) => Promise<AIInsightResponseStrict>;
+export declare const generateNaturalLanguageInsight: (insightPayload: any) => Promise<string>;
 //# sourceMappingURL=geminiService.d.ts.map
