@@ -1,1 +1,0 @@
-{"version":3,"file":"dailyExpenseModel.d.ts","sourceRoot":"","sources":["../../../src/models/dailyExpenseModel.ts"],"names":[],"mappings":"AAAA,OAAO,QAAQ,EAAE,EAAE,QAAQ,EAAE,KAAK,EAAE,MAAM,UAAU,CAAA;AAEpD,MAAM,WAAW,aAAc,SAAQ,QAAQ;IAC3C,IAAI,EAAE,KAAK,CAAC,QAAQ,CAAC;IACrB,IAAI,EAAE,MAAM,CAAC;IACb,YAAY,EAAE,MAAM,CAAC;CACxB;AAuBD,eAAO,MAAM,YAAY;;;;sBAAoE,CAAC"}
