@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.apiCall = void 0;
-const API_URL = "http://localhost:3002";
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim();
 const apiCall = async (endpoint, options = {}) => {
     if (!API_URL) {
         throw new Error("API_URL is not defined. Check your .env.local file");
