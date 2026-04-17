@@ -30,9 +30,12 @@ export const createuser = async (req :Request ,res : Response)=>{  //user creati
             token
    }})
     
-   }catch(error){
-      console.error("Signup error:", error);
-      res.status(500).json({message:"internal server error"})
+    } catch (error: any) {
+        console.error("Signup error details:", error);
+        res.status(500).json({ 
+            message: error.message || "internal server error",
+            details: error.errors 
+        })
     }
 }
 

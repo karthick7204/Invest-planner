@@ -170,9 +170,9 @@ export const getGraphData = async (req: authRequest, res: Response) => {
 
         if (mode === 'category') {
             // Get expenses by category for a specific day
-            const startOfDay = new Date(date);
+            const startOfDay = new Date(date as string);
             startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date(date);
+            const endOfDay = new Date(date as string);
             endOfDay.setHours(23, 59, 59, 999);
 
             const categoryData = await transaction.aggregate([
@@ -313,8 +313,8 @@ export const deleteTransaction = async (req: authRequest, res: Response) => {
         if (trans.type === "expense") {
             // Find and delete the matching expense
             // We use a range for the date slightly to be safe with timezones if they were saved differently
-            const startOfDate = new Date(dateStr);
-            const endOfDate = new Date(dateStr);
+            const startOfDate = new Date(dateStr as string);
+            const endOfDate = new Date(dateStr as string);
             endOfDate.setHours(23, 59, 59, 999);
 
             await expense.findOneAndDelete({
@@ -331,8 +331,8 @@ export const deleteTransaction = async (req: authRequest, res: Response) => {
                 { $inc: { totalExpense: -trans.amount } }
             );
         } else if (trans.type === "income") {
-            const startOfDate = new Date(dateStr);
-            const endOfDate = new Date(dateStr);
+            const startOfDate = new Date(dateStr as string);
+            const endOfDate = new Date(dateStr as string);
             endOfDate.setHours(23, 59, 59, 999);
 
             await income.findOneAndDelete({

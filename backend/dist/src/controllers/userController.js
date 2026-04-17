@@ -25,8 +25,11 @@ export const createuser = async (req, res) => {
             } });
     }
     catch (error) {
-        console.error("Signup error:", error);
-        res.status(500).json({ message: "internal server error" });
+        console.error("Signup error details:", error);
+        res.status(500).json({
+            message: error.message || "internal server error",
+            details: error.errors
+        });
     }
 };
 export const login = async (req, res) => {
