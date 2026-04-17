@@ -31,6 +31,7 @@ export const createuser = async (req :Request ,res : Response)=>{  //user creati
    }})
     
    }catch(error){
+      console.error("Signup error:", error);
       res.status(500).json({message:"internal server error"})
     }
 }
