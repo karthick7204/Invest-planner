@@ -53,8 +53,8 @@ export default function SignupCard() {
       
       console.log("✅ Identity Verify:", localStorage.getItem("authToken") ? "Token exists" : "No token", localStorage.getItem("userId"));
 
-      // ✅ Navigate to dashboard
-      router.push("/dashboard");
+      // ✅ Navigate to Dashboard
+      router.push("/Dashboard");
     } catch (error) {
       // ✅ If any error occurs, display it
       const errorMessage = error instanceof Error ? error.message : "Signup failed";

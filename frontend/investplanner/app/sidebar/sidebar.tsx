@@ -44,10 +44,10 @@ export default function Sidebar(){
                 <ul className="flex flex-col h-full gap-1 mt-4">
                     <li className="cursor-pointer">
                         <button 
-                          onClick={() => handleNavigation('dashboard')} 
-                          className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 ${pathname === '/dashboard' ? 'bg-black text-white shadow-lg shadow-gray-200' : 'text-gray-600 hover:bg-gray-100'}`}
+                          onClick={() => handleNavigation('Dashboard')} 
+                          className={`flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200 ${pathname === '/Dashboard' ? 'bg-black text-white shadow-lg shadow-gray-200' : 'text-gray-600 hover:bg-gray-100'}`}
                         >
-                           <LayoutDashboard size={18} strokeWidth={pathname === '/dashboard' ? 2.5 : 2} />
+                           <LayoutDashboard size={18} strokeWidth={pathname === '/Dashboard' ? 2.5 : 2} />
                           <span className="font-bold text-sm">Dashboard</span>
                         </button>
                     </li>
