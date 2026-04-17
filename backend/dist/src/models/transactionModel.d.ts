@@ -1,28 +1,31 @@
 import mongoose from "mongoose";
-export declare const income: mongoose.Model<{
-    purpose: string;
-    amount: number;
-    category: string;
+export declare const transaction: mongoose.Model<{
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
 } & mongoose.DefaultTimestampProps, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
-    purpose: string;
-    amount: number;
-    category: string;
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, {
     timestamps: true;
 }> & Omit<{
-    purpose: string;
-    amount: number;
-    category: string;
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -32,27 +35,30 @@ export declare const income: mongoose.Model<{
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, {
     timestamps: true;
 }, {
-    purpose: string;
-    amount: number;
-    category: string;
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
 } & mongoose.DefaultTimestampProps, mongoose.Document<unknown, {}, {
-    purpose: string;
-    amount: number;
-    category: string;
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, mongoose.ResolveSchemaOptions<{
     timestamps: true;
 }>> & Omit<{
-    purpose: string;
-    amount: number;
-    category: string;
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -63,21 +69,23 @@ export declare const income: mongoose.Model<{
     [path: string]: mongoose.SchemaDefinitionProperty<undefined, any, any>;
 } | {
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
-        purpose: string;
-        amount: number;
-        category: string;
+        type: "expense" | "income";
         date: NativeDate;
         user: mongoose.Types.ObjectId;
+        amount: number;
+        category: string;
+        topic: string;
     } & mongoose.DefaultTimestampProps, {
         id: string;
     }, mongoose.ResolveSchemaOptions<{
         timestamps: true;
     }>> & Omit<{
-        purpose: string;
-        amount: number;
-        category: string;
+        type: "expense" | "income";
         date: NativeDate;
         user: mongoose.Types.ObjectId;
+        amount: number;
+        category: string;
+        topic: string;
     } & mongoose.DefaultTimestampProps & {
         _id: mongoose.Types.ObjectId;
     } & {
@@ -86,11 +94,12 @@ export declare const income: mongoose.Model<{
         id: string;
     }> | undefined;
 }, {
-    purpose: string;
-    amount: number;
-    category: string;
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
@@ -98,11 +107,12 @@ export declare const income: mongoose.Model<{
 } & {
     __v: number;
 }>, {
-    purpose: string;
-    amount: number;
-    category: string;
+    type: "expense" | "income";
     date: NativeDate;
     user: mongoose.Types.ObjectId;
+    amount: number;
+    category: string;
+    topic: string;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
@@ -110,4 +120,4 @@ export declare const income: mongoose.Model<{
 } & {
     __v: number;
 }>;
-//# sourceMappingURL=incomeModel.d.ts.map
+//# sourceMappingURL=transactionModel.d.ts.map

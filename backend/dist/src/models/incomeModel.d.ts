@@ -1,28 +1,28 @@
-import mongoose from 'mongoose';
-export declare const expense: mongoose.Model<{
+import mongoose from "mongoose";
+export declare const income: mongoose.Model<{
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, {
     timestamps: true;
 }> & Omit<{
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -32,27 +32,27 @@ export declare const expense: mongoose.Model<{
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, {
     timestamps: true;
 }, {
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, mongoose.Document<unknown, {}, {
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, mongoose.ResolveSchemaOptions<{
     timestamps: true;
 }>> & Omit<{
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -63,21 +63,21 @@ export declare const expense: mongoose.Model<{
     [path: string]: mongoose.SchemaDefinitionProperty<undefined, any, any>;
 } | {
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
+        date: NativeDate;
+        user: mongoose.Types.ObjectId;
         purpose: string;
         amount: number;
         category: string;
-        date: NativeDate;
-        user: mongoose.Types.ObjectId;
     } & mongoose.DefaultTimestampProps, {
         id: string;
     }, mongoose.ResolveSchemaOptions<{
         timestamps: true;
     }>> & Omit<{
+        date: NativeDate;
+        user: mongoose.Types.ObjectId;
         purpose: string;
         amount: number;
         category: string;
-        date: NativeDate;
-        user: mongoose.Types.ObjectId;
     } & mongoose.DefaultTimestampProps & {
         _id: mongoose.Types.ObjectId;
     } & {
@@ -86,11 +86,11 @@ export declare const expense: mongoose.Model<{
         id: string;
     }> | undefined;
 }, {
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
@@ -98,11 +98,11 @@ export declare const expense: mongoose.Model<{
 } & {
     __v: number;
 }>, {
+    date: NativeDate;
+    user: mongoose.Types.ObjectId;
     purpose: string;
     amount: number;
     category: string;
-    date: NativeDate;
-    user: mongoose.Types.ObjectId;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
@@ -110,4 +110,4 @@ export declare const expense: mongoose.Model<{
 } & {
     __v: number;
 }>;
-//# sourceMappingURL=expenseModel.d.ts.map
+//# sourceMappingURL=incomeModel.d.ts.map

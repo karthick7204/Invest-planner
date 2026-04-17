@@ -1,31 +1,25 @@
-import mongoose from "mongoose";
-export declare const transaction: mongoose.Model<{
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+import mongoose from 'mongoose';
+export declare const budget: mongoose.Model<{
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
 } & mongoose.DefaultTimestampProps, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, {
     timestamps: true;
 }> & Omit<{
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -35,30 +29,24 @@ export declare const transaction: mongoose.Model<{
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any, any>, {}, {}, {}, {}, {
     timestamps: true;
 }, {
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
 } & mongoose.DefaultTimestampProps, mongoose.Document<unknown, {}, {
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, mongoose.ResolveSchemaOptions<{
     timestamps: true;
 }>> & Omit<{
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -69,23 +57,19 @@ export declare const transaction: mongoose.Model<{
     [path: string]: mongoose.SchemaDefinitionProperty<undefined, any, any>;
 } | {
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
-        amount: number;
-        category: string;
-        type: "expense" | "income";
-        date: NativeDate;
+        limit: number;
         user: mongoose.Types.ObjectId;
-        topic: string;
+        category: string;
+        month: string;
     } & mongoose.DefaultTimestampProps, {
         id: string;
     }, mongoose.ResolveSchemaOptions<{
         timestamps: true;
     }>> & Omit<{
-        amount: number;
-        category: string;
-        type: "expense" | "income";
-        date: NativeDate;
+        limit: number;
         user: mongoose.Types.ObjectId;
-        topic: string;
+        category: string;
+        month: string;
     } & mongoose.DefaultTimestampProps & {
         _id: mongoose.Types.ObjectId;
     } & {
@@ -94,12 +78,10 @@ export declare const transaction: mongoose.Model<{
         id: string;
     }> | undefined;
 }, {
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
@@ -107,12 +89,10 @@ export declare const transaction: mongoose.Model<{
 } & {
     __v: number;
 }>, {
-    amount: number;
-    category: string;
-    type: "expense" | "income";
-    date: NativeDate;
+    limit: number;
     user: mongoose.Types.ObjectId;
-    topic: string;
+    category: string;
+    month: string;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
@@ -120,4 +100,4 @@ export declare const transaction: mongoose.Model<{
 } & {
     __v: number;
 }>;
-//# sourceMappingURL=transactionModel.d.ts.map
+//# sourceMappingURL=budgetModel.d.ts.map
