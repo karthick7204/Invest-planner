@@ -30,11 +30,23 @@ app.use('/dailyexpense', dailyExpenseRouter)
 app.use('/budget', budgetRouter)
 app.use('/ai', aiRouter)
 
-mongoose.connect(MONGOURL).then(()=>{
-    console.log("mongodb connection successfull")
+mongoose.connect(MONGOURL, {
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
+}).then(()=>{
+    console.log("✅ MongoDB Atlas Connected Successfully")
 }).catch((error)=>{
-    console.log(`this is the ${error}`)
+    console.error("❌ MongoDB Connection Error:", error.message)
 })
+
+mongoose.connection.on('error', err => {
+    console.error('Mongoose heart-beat error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.log('Mongoose disconnected');
+});
 
 app.listen(port,()=>{
     console.log(`this is the port that is listening ${port}`)
