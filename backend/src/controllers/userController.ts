@@ -3,6 +3,7 @@ import {Request , Response} from 'express'
 import jwt from 'jsonwebtoken'
 
 export const createuser = async (req :Request ,res : Response)=>{  //user creation function
+    console.log(`const MONGOURL : string   = ${process.env.MONGO_URL || " "}`)
     try{
       const userdata = new user(req.body)
       const saveduser = await userdata.save()
