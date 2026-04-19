@@ -15,7 +15,7 @@ export default function DashboardPage() {
           <h1 className="font-bold text-black text-2xl md:text-3xl tracking-tight">Financial Overview</h1>
           <p className="font-light text-mauve-500 text-sm md:text-base mt-1">Welcome back, Here's what's new happening with your money</p>
         </div>
-        <div className="w-full sm:w-auto self-start sm:self-auto flex sm:justify-end shrink-0">
+        <div className="w-full sm:w-auto flex justify-end sm:justify-end shrink-0">
           <BudgetButton />
         </div>
       </div>
