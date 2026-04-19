@@ -31,13 +31,10 @@ app.use('/budget', budgetRouter)
 app.use('/ai', aiRouter)
 
 mongoose.connect(MONGOURL, {
-    serverSelectionTimeoutMS: 15000,
-    connectTimeoutMS: 15000,
-    socketTimeoutMS: 45000,
 }).then(()=>{
     console.log("✅ MongoDB Atlas Connected Successfully")
 }).catch((error)=>{
-    console.error("❌ MongoDB Connection Error:", error.message)
+    console.error("❌MongoDB Connection Error:", error.message)
 })
 
 mongoose.connection.on('error', err => {
