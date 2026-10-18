@@ -29,6 +29,7 @@ app.use('/stocks',stocksRouter)
 app.use('/dailyexpense', dailyExpenseRouter)
 app.use('/budget', budgetRouter)
 app.use('/ai', aiRouter)
+app.use('/api/ai', aiRouter)
 
 mongoose.connect(MONGOURL, {
 }).then(()=>{

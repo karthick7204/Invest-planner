@@ -4,21 +4,61 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// Candidate models in order of priority. gemini-1.5-flash is retired/unsupported in v1beta.
+const CANDIDATE_MODELS = [
+  process.env.GEMINI_MODEL,
+  "gemini-3.8-flash",
+  "gemini-flash-latest",
+].filter((m): m is string => Boolean(m && m.trim()));
+
+/**
+ * Resiliently execute a Gemini API call with model fallback support
+ */
+async function callGeminiWithFallback<T>(
+  actionName: string,
+  fn: (modelName: string) => Promise<T>
+): Promise<T> {
+  let lastError: any = null;
+  for (const modelName of CANDIDATE_MODELS) {
+    try {
+      return await fn(modelName);
+    } catch (err: any) {
+      console.warn(`⚠️ [${actionName}] Attempt with model ${modelName} failed:`, err.message || err);
+      lastError = err;
+      const msg = String(err.message || "").toLowerCase();
+      // If model not found / deprecated / unsupported, try next model candidate
+      if (
+        msg.includes("not found") ||
+        msg.includes("not supported") ||
+        msg.includes("no longer available") ||
+        msg.includes("404")
+      ) {
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError || new Error(`All candidate Gemini models failed for ${actionName}`);
+}
+
+export interface AIInsightItem {
+  title: string;
+  description: string;
+  icon: string;
+  tag: string;
+  color: string;
+}
+
+export interface AIInsightMetrics {
+  healthScore: number;
+  savingsRatio: number;
+  netWorthVelocity: string;
+}
 
 export interface AIInsightResponse {
-  insights: {
-    title: string;
-    description: string;
-    icon: string;
-    tag: string;
-    color: string;
-  }[];
-  metrics: {
-    healthScore: number;
-    savingsRatio: number;
-    netWorthVelocity: string;
-  };
+  insights: AIInsightItem[];
+  metrics: AIInsightMetrics;
 }
 
 export interface AIInsightResponseStrict {
@@ -27,6 +67,153 @@ export interface AIInsightResponseStrict {
   suggestions: string[];
   investmentAdvice: string[];
 }
+
+/**
+ * Strict validator for AIInsightResponseStrict JSON structures.
+ * Throws an explicit Error if fields are missing or invalid, preventing fake fallback reports.
+ */
+export const validateAIInsightResponseStrict = (data: unknown): AIInsightResponseStrict => {
+  if (!data || typeof data !== "object") {
+    throw new Error("AI response must be a JSON object");
+  }
+
+  const obj = data as Record<string, unknown>;
+
+  if (typeof obj.title !== "string" || !obj.title.trim()) {
+    throw new Error("AI response is missing a valid non-empty 'title' string");
+  }
+
+  if (!Array.isArray(obj.insights) || obj.insights.length === 0) {
+    throw new Error("AI response must contain an 'insights' array with at least 1 item");
+  }
+  const insights = obj.insights.map((item, idx) => {
+    if (typeof item !== "string" || !item.trim()) {
+      throw new Error(`AI response 'insights[${idx}]' must be a non-empty string`);
+    }
+    return item.trim();
+  });
+
+  if (!Array.isArray(obj.suggestions)) {
+    throw new Error("AI response must contain a 'suggestions' array");
+  }
+  const suggestions = obj.suggestions.map((item, idx) => {
+    if (typeof item !== "string" || !item.trim()) {
+      throw new Error(`AI response 'suggestions[${idx}]' must be a non-empty string`);
+    }
+    return item.trim();
+  });
+
+  if (!Array.isArray(obj.investmentAdvice)) {
+    throw new Error("AI response must contain an 'investmentAdvice' array");
+  }
+  const investmentAdvice = obj.investmentAdvice.map((item, idx) => {
+    if (typeof item !== "string" || !item.trim()) {
+      throw new Error(`AI response 'investmentAdvice[${idx}]' must be a non-empty string`);
+    }
+    return item.trim();
+  });
+
+  return {
+    title: obj.title.trim(),
+    insights,
+    suggestions,
+    investmentAdvice,
+  };
+};
+
+/**
+ * Strict validator for AIInsightResponse JSON structures.
+ * Throws an explicit Error if fields are missing or invalid.
+ */
+export const validateAIInsightResponse = (data: unknown): AIInsightResponse => {
+  if (!data || typeof data !== "object") {
+    throw new Error("AI response must be a JSON object");
+  }
+
+  const obj = data as Record<string, unknown>;
+
+  if (!Array.isArray(obj.insights) || obj.insights.length === 0) {
+    throw new Error("AI response must contain a non-empty 'insights' array");
+  }
+
+  const insights: AIInsightItem[] = obj.insights.map((item, idx) => {
+    if (!item || typeof item !== "object") {
+      throw new Error(`AI response 'insights[${idx}]' must be an object`);
+    }
+    const it = item as Record<string, unknown>;
+    if (typeof it.title !== "string" || !it.title.trim()) {
+      throw new Error(`AI response 'insights[${idx}]' missing 'title'`);
+    }
+    if (typeof it.description !== "string" || !it.description.trim()) {
+      throw new Error(`AI response 'insights[${idx}]' missing 'description'`);
+    }
+    return {
+      title: it.title.trim(),
+      description: it.description.trim(),
+      icon: typeof it.icon === "string" && it.icon.trim() ? it.icon.trim() : "Sparkles",
+      tag: typeof it.tag === "string" && it.tag.trim() ? it.tag.trim() : "Analysis",
+      color: typeof it.color === "string" && it.color.trim() ? it.color.trim() : "bg-blue-50",
+    };
+  });
+
+  if (!obj.metrics || typeof obj.metrics !== "object") {
+    throw new Error("AI response missing valid 'metrics' object");
+  }
+
+  const m = obj.metrics as Record<string, unknown>;
+  const healthScore = typeof m.healthScore === "number" ? m.healthScore : Number(m.healthScore);
+  const savingsRatio = typeof m.savingsRatio === "number" ? m.savingsRatio : Number(m.savingsRatio);
+
+  if (isNaN(healthScore)) {
+    throw new Error("AI response 'metrics.healthScore' must be a valid number");
+  }
+  if (isNaN(savingsRatio)) {
+    throw new Error("AI response 'metrics.savingsRatio' must be a valid number");
+  }
+
+  return {
+    insights,
+    metrics: {
+      healthScore,
+      savingsRatio,
+      netWorthVelocity: typeof m.netWorthVelocity === "string" ? m.netWorthVelocity : "Stable",
+    },
+  };
+};
+
+/**
+ * Extracts and parses a JSON object safely from raw LLM text output.
+ */
+export const extractAndParseJSON = (rawText: string): unknown => {
+  if (!rawText || !rawText.trim()) {
+    throw new Error("Received empty response from Gemini");
+  }
+
+  let cleaned = rawText.trim();
+
+  // Strip Markdown code block wrappers if present
+  const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (codeBlockMatch && codeBlockMatch[1]) {
+    cleaned = codeBlockMatch[1].trim();
+  } else {
+    cleaned = cleaned.replace(/```json/gi, "").replace(/```/g, "").trim();
+  }
+
+  // Find boundaries of the JSON object
+  const startIdx = cleaned.indexOf("{");
+  const endIdx = cleaned.lastIndexOf("}");
+  if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+    throw new Error(`Unable to find valid JSON object boundaries in Gemini output: "${cleaned.slice(0, 100)}..."`);
+  }
+
+  cleaned = cleaned.substring(startIdx, endIdx + 1);
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (err: any) {
+    throw new Error(`Failed to parse Gemini JSON output: ${err.message}. Raw text snippet: "${cleaned.slice(0, 120)}"`);
+  }
+};
 
 export const generateAIInsights = async (userData: string): Promise<AIInsightResponse> => {
   if (!process.env.GEMINI_API_KEY) {
@@ -59,51 +246,44 @@ export const generateAIInsights = async (userData: string): Promise<AIInsightRes
     ${userData}
   `;
 
-  try {
+  return await callGeminiWithFallback("generateAIInsights", async (modelName) => {
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
-    console.log("Gemini response text length:", text.length);
-    
-    // Clean JSON if the model returns Markdown blocks or extra text
-    let jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    
-    // Robust search for the JSON object
-    const startIdx = jsonStr.indexOf('{');
-    const endIdx = jsonStr.lastIndexOf('}');
-    if (startIdx !== -1 && endIdx !== -1) {
-        jsonStr = jsonStr.substring(startIdx, endIdx + 1);
-    }
-    
-    return JSON.parse(jsonStr) as AIInsightResponse;
-  } catch (error) {
-    console.error("Gemini AI generation failed or JSON parse error:", error);
-    throw error;
-  }
-};export const generateAIInsightsStrict = async (userData: any): Promise<AIInsightResponseStrict> => {
+
+    console.log(`[generateAIInsights] Gemini response text length (${modelName}):`, text.length);
+
+    const parsed = extractAndParseJSON(text);
+    return validateAIInsightResponse(parsed);
+  });
+};
+
+export const generateAIInsightsStrict = async (userData: any): Promise<AIInsightResponseStrict> => {
   if (!process.env.GEMINI_API_KEY) {
     throw new Error("Missing Gemini API Key. Please add GEMINI_API_KEY to your .env file.");
   }
 
   const prompt = `
-    You are a financial assistant.
-    Analyze the user's financial data.
+    You are an expert personal financial advisor and auditor.
+    Analyze the user's actual financial records and metrics.
     
     Rules:
-    - If expenses > salary → flag overspending
-    - If surplus < 10% of salary → flag low savings
-    - Identify top spending categories
-    - Suggest how to reduce expenses
-    - Suggest how to improve investments
+    - If records are empty or income is 0, provide constructive guidance on getting started with logging income, expenses, and category budgets.
+    - If expenses > salary/income → flag critical overspending with exact deficit
+    - If surplus < 10% of salary → flag low savings rate
+    - Identify top spending categories from data
+    - Suggest how to reduce expenses specifically mentioning categories and actionable targets
+    - Suggest how to optimize investments (stocks, mutual funds, emergency reserves) based on actual surplus
     
-    Keep output clean and short:
-    Title: ...
-    Insights: - ...
-    Suggestions: - ...
-    Investment Advice: - ...
-    
-    Return the response ONLY in JSON format following this interface:
+    Keep output clean, professional, and actionable.
+    Return the response ONLY in JSON format following this exact interface:
     {
       "title": string,
       "insights": string[],
@@ -115,43 +295,26 @@ export const generateAIInsights = async (userData: string): Promise<AIInsightRes
     ${JSON.stringify(userData, null, 2)}
   `;
 
-  try {
+  return await callGeminiWithFallback("generateAIInsightsStrict", async (modelName) => {
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    
-    // --- DEBUG LOG FOR THE USER ---
+
     console.log("-----------------------------------------");
-    console.log("🔮 RAW LLM RESPONSE:");
-    console.log(text);
+    console.log(`🔮 RAW LLM RESPONSE (${modelName}, length: ${text.length}):`);
+    console.log(text.slice(0, 300) + (text.length > 300 ? "..." : ""));
     console.log("-----------------------------------------");
-    
-    // Clean JSON if the model returns Markdown blocks or extra text
-    let jsonStr = text.trim();
-    
-    // Extract JSON using regex if it's wrapped in code blocks
-    const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonMatch && jsonMatch[1]) {
-        jsonStr = jsonMatch[1].trim();
-    }
-    
-    // Final defensive check to get only the JSON part
-    const startIdx = jsonStr.indexOf('{');
-    const endIdx = jsonStr.lastIndexOf('}');
-    if (startIdx !== -1 && endIdx !== -1) {
-        jsonStr = jsonStr.substring(startIdx, endIdx + 1);
-    }
-    
-    try {
-        return JSON.parse(jsonStr) as AIInsightResponseStrict;
-    } catch (parseError) {
-        console.error("⚠️ Gemini JSON Parse Fallback triggered:", parseError);
-        return getFallbackResponse();
-    }
-  } catch (error) {
-    console.error("❌ Gemini AI generation failed:", error);
-    return getFallbackResponse();
-  }
+
+    const parsed = extractAndParseJSON(text);
+    return validateAIInsightResponseStrict(parsed);
+  });
 };
 
 export const generateNaturalLanguageInsight = async (insightPayload: any): Promise<string> => {
@@ -170,47 +333,37 @@ export const generateNaturalLanguageInsight = async (insightPayload: any): Promi
     ${JSON.stringify(insightPayload, null, 2)}
   `;
 
-  try {
+  return await callGeminiWithFallback("generateNaturalLanguageInsight", async (modelName) => {
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      // Plain text mode: do not force JSON mime type
+    });
+
     const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        safetySettings: [
-            {
-                category: "HARM_CATEGORY_HARASSMENT" as any,
-                threshold: "BLOCK_NONE" as any,
-            },
-            {
-                category: "HARM_CATEGORY_HATE_SPEECH" as any,
-                threshold: "BLOCK_NONE" as any,
-            },
-            {
-                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT" as any,
-                threshold: "BLOCK_NONE" as any,
-            },
-            {
-                category: "HARM_CATEGORY_DANGEROUS_CONTENT" as any,
-                threshold: "BLOCK_NONE" as any,
-            },
-        ],
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT" as any,
+          threshold: "BLOCK_NONE" as any,
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH" as any,
+          threshold: "BLOCK_NONE" as any,
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT" as any,
+          threshold: "BLOCK_NONE" as any,
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT" as any,
+          threshold: "BLOCK_NONE" as any,
+        },
+      ],
     });
 
     const response = await result.response;
     const text = response.text();
-    if (!text) throw new Error("Empty response from Gemini");
+    if (!text || !text.trim()) throw new Error("Empty response from Gemini");
     return text.trim();
-  } catch (error: any) {
-    console.error("❌ Gemini Natural Language Insight generation failed:", error);
-    // Returning a more descriptive error for debugging
-    return `Analysis currently unavailable. (Error: ${error.message || "Unknown AI error"})`;
-  }
+  });
 };
-
-
-const getFallbackResponse = (): AIInsightResponseStrict => {
-    return {
-        title: "Wealth AI Analysis (Draft)",
-        insights: ["Analyzed your recent transactions and income profiles."],
-        suggestions: ["Monitor your top categories for potential savings opportunities."],
-        investmentAdvice: ["Consider diversifying into index funds once your surplus is stable and liquid."]
-    };
-};
-

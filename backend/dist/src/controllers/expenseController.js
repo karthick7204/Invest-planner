@@ -344,16 +344,9 @@ export const getAIAnalysis = async (req, res) => {
         }
         catch (aiError) {
             console.error("Gemini processing error:", aiError);
-            // Fallback for AI if it fails but we have data
-            return res.status(200).json({
-                insights: [{
-                        title: "AI Momentarily Offline",
-                        description: "We have your transactions, but Gemini is currenty having trouble analyzing them. Please try again in a few minutes.",
-                        icon: "Zap",
-                        tag: "Info",
-                        color: "bg-yellow-50"
-                    }],
-                metrics: { healthScore: 50, savingsRatio: 0, netWorthVelocity: "Stable" }
+            return res.status(502).json({
+                message: "Failed to generate AI insights from Gemini",
+                error: aiError.message || String(aiError)
             });
         }
     }

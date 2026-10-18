@@ -12,12 +12,6 @@ export const InsightCard = () => {
     const isProduction = process.env.NODE_ENV === 'production';
 
     const fetchInsight = async () => {
-        if (isProduction) {
-            setLoading(false);
-            setInsight("This feature is currently under construction for our live platform. We're fine-tuning the AI models to provide you with the most accurate financial guidance. Stay tuned!");
-            return;
-        }
-        
         setLoading(true);
         setError(null);
         try {

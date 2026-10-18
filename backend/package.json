@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon dist/src/index.js\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsc && node --test dist/src/test/*.test.js",
     "build": "tsc"
   },
   "keywords": [],
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.6.5",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
