@@ -5,7 +5,7 @@ import { Download, RefreshCw, Sparkles } from "lucide-react";
 
 interface ReportHeaderProps {
   onExport?: () => void;
-  onGenerate?: () => void;
+  onGenerate?: () => void | Promise<void>;
   hasReport?: boolean;
   loading?: boolean;
 }

@@ -69,9 +69,9 @@ export const login = async(req :Request,res : Response)=>{ //login function
    }})
     
    }
-   catch(error){
-      console.log("usercontroller error")
-      res.status(500).json({error:"internal error "})
+   catch(error: any){
+      console.error("usercontroller login error details:", error);
+      res.status(500).json({ error: "internal error", message: error?.message || String(error) });
    }
 }
 
