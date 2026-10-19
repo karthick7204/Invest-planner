@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon dist/src/index.js\"",
     "test": "tsc && node --test dist/src/test/*.test.js",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/src/index.js"
   },
   "keywords": [],
   "author": "",
