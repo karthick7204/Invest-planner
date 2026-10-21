@@ -1,56 +1,57 @@
-# Welcome to your Expo app 👋
+# InvestPlanner Mobile Application (Expo / React Native)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The official cross-platform mobile companion for Invest Planner, built with Expo Router and React Native.
 
-## Get started
+## 📱 Features
 
-1. Install dependencies
+- **Authentication**: JWT-based authentication with session persistence in AsyncStorage, automatic authorization header injection, and 401 token expiry handling.
+- **Financial Dashboard**: Live synchronization of total income, expenses, and surplus calculations from the backend.
+- **Transactions Management**: Real-time listing, creation (with validated category and purpose), and deletion of transactions.
+- **Budget Tracking**: Category-based monthly budget goals with utilization progress indicators, overspend alerts, and modal definition.
+- **Asset Allocation**: Dynamic surplus investment split calculation (50% Stocks, 30% Mutual Funds, 20% Gold).
+- **Gemini AI Financial Reports**: Full personalized audit reports powered by Google Gemini AI with health scores, net worth velocity, observations, action recommendations, and native sharing.
+- **AI Spending Insights**: Real-time weekly spending intelligence and autonomous anomaly detection.
+- **Stock Suggestions**: Live National Stock Exchange (NSE) quotes with price range filtering and search.
 
+## 🌐 Backend API Connectivity & Mobile Networking
+
+The mobile app communicates with the shared backend Express API (`backend/`).
+
+### Environment Variables (`.env`)
+
+Configure `EXPO_PUBLIC_API_URL` in `mobile/.env`:
+
+```env
+# Default development URL
+EXPO_PUBLIC_API_URL=http://localhost:3002
+```
+
+### Mobile Networking Rules:
+1. **Web Browser (`npm run web`) & iOS Simulator (`npm run ios`)**:
+   `http://localhost:3002` connects directly.
+2. **Android Emulator (`npm run android`)**:
+   The app automatically maps `localhost` to `http://10.0.2.2:3002`.
+3. **Physical Phone via Expo Go**:
+   `localhost` on a phone refers to the phone itself. The centralized API client (`src/services/api.ts`) automatically extracts your computer's LAN IP from Expo's dev server `hostUri` (e.g. `http://192.168.1.15:3002`). You can also explicitly specify your computer's Wi-Fi IPv4 address in `mobile/.env`.
+4. **Production**:
+   Set `EXPO_PUBLIC_API_URL=https://api.yourinvestplanner.com` in your production build / EAS environment.
+
+## 🚀 Getting Started
+
+1. **Start the backend server:**
    ```bash
-   npm install
+   cd ../backend
+   npm run build
+   npm run dev
    ```
 
-2. Start the app
-
+2. **Start the Expo mobile app:**
    ```bash
+   cd ../mobile
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+3. **Typecheck:**
+   ```bash
+   npx tsc --noEmit
+   ```

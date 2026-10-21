@@ -58,3 +58,54 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_API_URL: http://localhost:3002
+
+  deploy:
+    name: Frontend Continuous Deployment
+    needs: lint-and-build
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/investplanner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Deploy Frontend to Hosting Provider
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_FRONTEND_DEPLOY_HOOK_URL || secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "Starting frontend deployment..."
+          if [ -n "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "Triggering deployment via Vercel Deploy Hook..."
+            response=$(curl -s -w "\n%{http_code}" -X POST "$VERCEL_DEPLOY_HOOK_URL")
+            http_code=$(echo "$response" | tail -n1)
+            body=$(echo "$response" | sed '$d')
+            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+              echo "✅ Frontend deployment triggered successfully (HTTP $http_code)"
+            else
+              echo "❌ Vercel Deploy Hook failed with HTTP $http_code: $body"
+              exit 1
+            fi
+          elif [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "Deploying to Vercel via Vercel CLI..."
+            npm install --global vercel@latest
+            vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+            vercel build --prod --token="$VERCEL_TOKEN"
+            vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+            echo "✅ Vercel production deployment completed successfully."
+          else
+            echo "::error::Frontend hosting credentials not found in GitHub Secrets."
+            echo "To enable automated frontend deployment, add one of the following to Repository Secrets:"
+            echo "  1. VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID (Recommended for Vercel CLI)"
+            echo "  2. Or VERCEL_FRONTEND_DEPLOY_HOOK_URL (or VERCEL_DEPLOY_HOOK_URL)"
+            exit 1
+          fi

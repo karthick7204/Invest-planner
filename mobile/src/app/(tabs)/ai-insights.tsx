@@ -13,29 +13,33 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/Header';
 import { apiCall } from '@/services/api';
+import { AIInsightResult } from '@/types/api';
 
 export default function AIInsightsScreen() {
-  const [insightText, setInsightText] = useState<string>('');
+  const [briefingText, setBriefingText] = useState<string>('');
+  const [deepAnalysis, setDeepAnalysis] = useState<AIInsightResult | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [auditing, setAuditing] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const fetchInsights = useCallback(async () => {
+  const fetchBriefing = useCallback(async () => {
+    setErrorMessage(null);
     try {
-      const data = await apiCall('/ai/insights');
+      const data = await apiCall('/ai/insights', { method: 'GET' });
       if (data && data.insight) {
-        setInsightText(data.insight);
-      } else if (data && typeof data === 'string') {
-        setInsightText(data);
+        setBriefingText(data.insight);
+      } else if (typeof data === 'string') {
+        setBriefingText(data);
       } else {
-        setInsightText(
-          'Gemini AI has analyzed your transactions. Your spending velocity is currently balanced, with essential categories tracking well within budget limits.'
+        setBriefingText(
+          'Gemini AI has audited your transaction history. Log regular expenses to maintain up-to-date spending intelligence.'
         );
       }
     } catch (err: any) {
-      console.warn('Failed to load AI insights:', err?.message);
-      // Fallback helpful prompt if offline or initial load
-      setInsightText(
-        'Analyzing recent spending records. Keep logging expenses to unlock daily peak velocity detection and personalized saving recommendations.'
+      console.warn('Could not fetch AI briefing:', err?.message);
+      setBriefingText(
+        'Analyzing current transactions. Keep recording expenses to unlock peak velocity and category alerts.'
       );
     } finally {
       setLoading(false);
@@ -43,13 +47,37 @@ export default function AIInsightsScreen() {
     }
   }, []);
 
+  const runDeepAudit = async () => {
+    setAuditing(true);
+    setErrorMessage(null);
+    try {
+      const data = await apiCall<AIInsightResult>('/ai/insights', {
+        method: 'POST',
+      });
+      if (data && (data.insights || data.suggestions)) {
+        setDeepAnalysis(data);
+        Alert.alert(
+          'Audit Completed',
+          'Gemini AI has generated personalized observations, suggestions, and investment advice.'
+        );
+      }
+    } catch (err: any) {
+      console.error('Deep AI audit error:', err);
+      const msg = err?.message || 'Failed to complete deep audit via Gemini AI.';
+      setErrorMessage(msg);
+      Alert.alert('Audit Error', msg);
+    } finally {
+      setAuditing(false);
+    }
+  };
+
   useEffect(() => {
-    fetchInsights();
-  }, [fetchInsights]);
+    fetchBriefing();
+  }, [fetchBriefing]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchInsights();
+    fetchBriefing();
   };
 
   return (
@@ -59,7 +87,7 @@ export default function AIInsightsScreen() {
         subtitle="Gemini 3.8 Flash spending intelligence"
         rightAction={
           <TouchableOpacity
-            onPress={fetchInsights}
+            onPress={fetchBriefing}
             disabled={loading || refreshing}
             style={styles.refreshBtn}
           >
@@ -80,6 +108,14 @@ export default function AIInsightsScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Error notification banner */}
+        {errorMessage ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={18} color="#DC2626" />
+            <Text style={styles.errorBannerText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+
         {/* Gemini AI Hero Banner */}
         <View style={styles.heroCard}>
           <View style={styles.heroHeader}>
@@ -92,9 +128,27 @@ export default function AIInsightsScreen() {
           <Text style={styles.heroText}>
             Continuous pattern detection across your daily expenses, alerting you before you overspend.
           </Text>
+
+          <TouchableOpacity
+            onPress={runDeepAudit}
+            disabled={auditing}
+            style={[styles.deepAuditBtn, auditing && styles.deepAuditBtnDisabled]}
+          >
+            {auditing ? (
+              <>
+                <ActivityIndicator color="#111827" size="small" />
+                <Text style={styles.deepAuditBtnText}>Auditing with Gemini...</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="flash" size={16} color="#111827" />
+                <Text style={styles.deepAuditBtnText}>Run Deep Spending Audit</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
 
-        {/* Natural Language AI Insight Card */}
+        {/* Natural Language AI Briefing Card */}
         <View style={styles.insightCard}>
           <View style={styles.insightHeader}>
             <View style={styles.insightIconWrap}>
@@ -109,11 +163,78 @@ export default function AIInsightsScreen() {
               <Text style={styles.loadingBoxText}>Synthesizing financial telemetry...</Text>
             </View>
           ) : (
-            <Text style={styles.insightBodyText}>{insightText}</Text>
+            <Text style={styles.insightBodyText}>{briefingText}</Text>
           )}
         </View>
 
-        {/* Key Focus Cards */}
+        {/* Deep Analysis Results if Available */}
+        {deepAnalysis ? (
+          <View style={styles.analysisContainer}>
+            {/* Title / Header */}
+            {deepAnalysis.title ? (
+              <View style={styles.analysisHeaderBox}>
+                <Ionicons name="ribbon-outline" size={20} color="#D97706" />
+                <Text style={styles.analysisTitleText}>{deepAnalysis.title}</Text>
+              </View>
+            ) : null}
+
+            {/* Observations / Insights */}
+            {deepAnalysis.insights && deepAnalysis.insights.length > 0 ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.cardHeaderIcon, { backgroundColor: '#EFF6FF' }]}>
+                    <Ionicons name="bulb-outline" size={18} color="#2563EB" />
+                  </View>
+                  <Text style={styles.cardTitle}>Observations</Text>
+                </View>
+                {deepAnalysis.insights.map((ins, i) => (
+                  <View key={i} style={styles.listItem}>
+                    <Ionicons name="checkmark-circle" size={16} color="#2563EB" />
+                    <Text style={styles.listItemText}>{ins}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {/* Suggestions */}
+            {deepAnalysis.suggestions && deepAnalysis.suggestions.length > 0 ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.cardHeaderIcon, { backgroundColor: '#ECFDF5' }]}>
+                    <Ionicons name="shield-checkmark-outline" size={18} color="#059669" />
+                  </View>
+                  <Text style={styles.cardTitle}>Actionable Suggestions</Text>
+                </View>
+                {deepAnalysis.suggestions.map((sug, i) => (
+                  <View key={i} style={styles.listItem}>
+                    <Ionicons name="arrow-forward-circle" size={16} color="#059669" />
+                    <Text style={styles.listItemText}>{sug}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {/* Investment Advice */}
+            {deepAnalysis.investmentAdvice && deepAnalysis.investmentAdvice.length > 0 ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.cardHeaderIcon, { backgroundColor: '#FEF3C7' }]}>
+                    <Ionicons name="trending-up-outline" size={18} color="#D97706" />
+                  </View>
+                  <Text style={styles.cardTitle}>Investment Advice</Text>
+                </View>
+                {deepAnalysis.investmentAdvice.map((adv, i) => (
+                  <View key={i} style={styles.listItem}>
+                    <Ionicons name="cash-outline" size={16} color="#D97706" />
+                    <Text style={styles.listItemText}>{adv}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {/* Feature Highlights Grid */}
         <View style={styles.featureGrid}>
           {/* Daily Peak Card */}
           <View style={styles.featureCard}>
@@ -166,6 +287,22 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
     gap: 16,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    padding: 12,
+    borderRadius: 12,
+  },
+  errorBannerText: {
+    color: '#B91C1C',
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
   refreshBtn: {
     padding: 8,
     backgroundColor: '#F3F4F6',
@@ -212,6 +349,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontWeight: '500',
+    marginBottom: 16,
+  },
+  deepAuditBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FACC15',
+    paddingVertical: 12,
+    borderRadius: 14,
+  },
+  deepAuditBtnDisabled: {
+    opacity: 0.7,
+  },
+  deepAuditBtnText: {
+    color: '#111827',
+    fontSize: 14,
+    fontWeight: '800',
   },
   insightCard: {
     backgroundColor: '#FFFFFF',
@@ -259,6 +414,66 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     color: '#374151',
+    fontWeight: '500',
+  },
+  analysisContainer: {
+    gap: 16,
+  },
+  analysisHeaderBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#FEF3C7',
+    padding: 14,
+    borderRadius: 16,
+  },
+  analysisTitleText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#92400E',
+    flex: 1,
+  },
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  cardHeaderIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 10,
+  },
+  listItemText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#374151',
+    flex: 1,
     fontWeight: '500',
   },
   featureGrid: {

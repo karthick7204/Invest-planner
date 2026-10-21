@@ -14,10 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/Header';
 import { apiCall } from '@/services/api';
 
-interface Stock {
-  symbol: string;
-  lastprice: number;
-}
+import { Stock } from '@/types/api';
 
 type FilterRange = 'all' | 'under500' | '500to2000' | 'above2000';
 
@@ -27,8 +24,10 @@ export default function StocksScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedFilter, setSelectedFilter] = useState<FilterRange>('all');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchStocks = useCallback(async () => {
+    setErrorMessage(null);
     try {
       const data = await apiCall('/stocks/displaystocks');
       if (data && data.stockList) {
@@ -45,7 +44,7 @@ export default function StocksScreen() {
         });
         setStocks(processed);
       } else {
-        // Fallback popular NSE benchmark stocks if offline
+        // Fallback popular NSE benchmark stocks if offline or outside market hours
         setStocks([
           { symbol: 'RELIANCE', lastprice: 2950.5 },
           { symbol: 'TCS', lastprice: 3880.25 },
@@ -61,6 +60,7 @@ export default function StocksScreen() {
       }
     } catch (err: any) {
       console.warn('Failed to load stock data:', err?.message);
+      setErrorMessage(err?.message || 'NSE live data temporarily unavailable.');
       setStocks([
         { symbol: 'RELIANCE', lastprice: 2950.5 },
         { symbol: 'TCS', lastprice: 3880.25 },
@@ -217,6 +217,13 @@ export default function StocksScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {errorMessage ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={18} color="#DC2626" />
+            <Text style={styles.errorBannerText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+
         {loading ? (
           <View style={styles.loadingWrapper}>
             <ActivityIndicator size="large" color="#111827" />
@@ -416,5 +423,22 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontSize: 13,
     color: '#6B7280',
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  errorBannerText: {
+    color: '#B91C1C',
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
   },
 });

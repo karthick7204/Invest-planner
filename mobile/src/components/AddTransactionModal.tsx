@@ -28,11 +28,21 @@ const EXPENSE_CATEGORIES = [
   'Entertainment',
   'Health',
   'Utilities',
+  'Rent',
+  'Groceries',
+  'General',
   'Investment',
   'Other',
 ];
 
-const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Business', 'Dividends', 'Other'];
+const INCOME_CATEGORIES = [
+  'Salary',
+  'Freelance',
+  'Business',
+  'Dividends',
+  'Investment',
+  'Other',
+];
 
 export function AddTransactionModal({
   visible,
@@ -57,35 +67,28 @@ export function AddTransactionModal({
       return;
     }
 
+    const note = topic.trim() || category;
+
     setLoading(true);
     try {
-      if (type === 'expense') {
-        await apiCall('/expense/create', {
-          method: 'POST',
-          body: JSON.stringify({
-            amount: numAmount,
-            category,
-            topic: topic || category,
-            date: new Date().toISOString(),
-          }),
-        });
-      } else {
-        await apiCall('/expense/income', {
-          method: 'POST',
-          body: JSON.stringify({
-            amount: numAmount,
-            category,
-            topic: topic || category,
-            date: new Date().toISOString(),
-          }),
-        });
-      }
+      const endpoint = type === 'expense' ? '/expense/create' : '/expense/income';
+      await apiCall(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({
+          purpose: note,
+          topic: note,
+          amount: numAmount,
+          category,
+          date: new Date().toISOString(),
+        }),
+      });
 
       setAmount('');
       setTopic('');
       onSuccess();
       onClose();
     } catch (err: any) {
+      console.error('Error creating transaction:', err);
       Alert.alert('Error', err?.message || 'Failed to save transaction');
     } finally {
       setLoading(false);
@@ -207,9 +210,9 @@ export function AddTransactionModal({
               </View>
             </View>
 
-            {/* Note / Topic Input */}
+            {/* Note / Purpose Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Description / Note</Text>
+              <Text style={styles.label}>Description / Purpose</Text>
               <TextInput
                 value={topic}
                 onChangeText={setTopic}

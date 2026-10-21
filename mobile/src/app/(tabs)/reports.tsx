@@ -14,75 +14,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/Header';
 import { apiCall } from '@/services/api';
-
-interface CategoryMetric {
-  category: string;
-  amount: number;
-  percentageOfTotal: number;
-  percentageOfIncome: number;
-}
-
-interface BudgetMetric {
-  category: string;
-  limit: number;
-  spent: number;
-  remaining: number;
-  isOverBudget: boolean;
-  overspendAmount: number;
-  utilizationPercent: number;
-}
-
-interface ReportData {
-  metrics: {
-    totalIncome: number;
-    totalExpenses: number;
-    netSurplus: number;
-    savingsRatio: number;
-    expenseRatio: number;
-    healthScore: number;
-    netWorthVelocity: 'Accelerating' | 'Stable' | 'Retracting';
-    categoryExpenses: CategoryMetric[];
-    investments: {
-      totalActualInvested: number;
-      investableSurplus: number;
-      suggestedSplit: {
-        for_Stocks: number;
-        for_Mutualfunds: number;
-        for_Gold: number;
-      };
-      investmentRatio: number;
-    };
-    budgetMetrics: {
-      totalBudgetLimit: number;
-      totalBudgetSpent: number;
-      overallUtilizationPercent: number;
-      overspentCategories: string[];
-      budgets: BudgetMetric[];
-    };
-  };
-  geminiReport: {
-    title: string;
-    executiveSummary: string;
-    keyObservations: string[];
-    actionableSuggestions: string[];
-    riskAnalysis: string[];
-  };
-}
+import { AIReportData } from '@/types/api';
 
 export default function ReportsScreen() {
-  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [reportData, setReportData] = useState<AIReportData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [generating, setGenerating] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'ai-report' | 'analytics'>('ai-report');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchReport = useCallback(async () => {
+    setErrorMessage(null);
     try {
-      const data = await apiCall('/ai/report');
+      const data = await apiCall<AIReportData>('/ai/report', { method: 'GET' });
       if (data && data.metrics) {
         setReportData(data);
       }
     } catch (err: any) {
-      console.warn('Could not fetch existing report:', err?.message);
+      console.warn('Could not fetch existing AI report:', err?.message);
     } finally {
       setLoading(false);
     }
@@ -94,14 +43,21 @@ export default function ReportsScreen() {
 
   const handleGenerate = async () => {
     setGenerating(true);
+    setErrorMessage(null);
     try {
-      const data = await apiCall('/ai/report', { method: 'POST' });
+      const data = await apiCall<AIReportData>('/ai/report', { method: 'POST' });
       if (data && data.metrics) {
         setReportData(data);
-        Alert.alert('Report Ready', 'Gemini AI has finished auditing your finances!');
+        Alert.alert(
+          'Gemini Audit Complete',
+          'Gemini AI has analyzed your transactions and generated your financial health report!'
+        );
       }
     } catch (err: any) {
-      Alert.alert('Report Generation Error', err?.message || 'Failed to generate report');
+      console.error('Report generation error:', err);
+      const msg = err?.message || 'Failed to generate report from Gemini AI.';
+      setErrorMessage(msg);
+      Alert.alert('Report Error', msg);
     } finally {
       setGenerating(false);
     }
@@ -109,18 +65,39 @@ export default function ReportsScreen() {
 
   const handleExport = async () => {
     if (!reportData) return;
-    const { metrics, geminiReport } = reportData;
+    const { report, metrics } = reportData;
+    const dateFormatted = report?.generatedAt
+      ? new Date(report.generatedAt).toLocaleString('en-IN')
+      : new Date().toLocaleDateString('en-IN');
+
     const text = `
-INVESTPLANNER AI FINANCIAL REPORT
-=================================
-Financial Health Score: ${metrics.healthScore}/100 (${metrics.netWorthVelocity})
-Total Income: ₹${metrics.totalIncome.toLocaleString('en-IN')}
-Total Expenses: ₹${metrics.totalExpenses.toLocaleString('en-IN')}
-Net Surplus: ₹${metrics.netSurplus.toLocaleString('en-IN')}
-Savings Ratio: ${metrics.savingsRatio}%
+=====================================================
+INVEST PLANNER - PERSONALIZED FINANCIAL AUDIT REPORT
+Powered by Google Gemini AI & Live Database Sync
+Date: ${dateFormatted}
+=====================================================
 
 EXECUTIVE SUMMARY
-${geminiReport?.executiveSummary || 'N/A'}
+Title: ${report?.title || 'Financial Health Assessment'}
+Health Score: ${report?.healthScore ?? metrics.healthScore}/100
+Savings Ratio: ${report?.savingsRatio ?? metrics.savingsRatio}%
+Net Worth Velocity: ${report?.netWorthVelocity || metrics.netWorthVelocity}
+
+KEY FINANCIAL METRICS
+- Total Income: ₹${metrics.totalIncome.toLocaleString('en-IN')}
+- Total Expenses: ₹${metrics.totalExpenses.toLocaleString('en-IN')}
+- Net Surplus: ₹${metrics.netSurplus.toLocaleString('en-IN')}
+- Savings Ratio: ${metrics.savingsRatio}%
+- Expense Ratio: ${metrics.expenseRatio}%
+
+GEMINI AI OBSERVATIONS & INSIGHTS
+${(report?.insights || []).map((ins, i) => `${i + 1}. ${ins}`).join('\n')}
+
+ACTIONABLE RECOMMENDATIONS
+${(report?.suggestions || []).map((sug, i) => `${i + 1}. ${sug}`).join('\n')}
+
+INVESTMENT & CAPITAL ADVICE
+${(report?.investmentAdvice || []).map((adv, i) => `${i + 1}. ${adv}`).join('\n')}
 
 SUGGESTED PORTFOLIO SPLIT
 - Stocks (50%): ₹${metrics.investments.suggestedSplit.for_Stocks.toLocaleString('en-IN')}
@@ -131,7 +108,7 @@ SUGGESTED PORTFOLIO SPLIT
     try {
       await Share.share({
         message: text,
-        title: 'InvestPlanner Financial Report',
+        title: 'InvestPlanner Financial Audit Report',
       });
     } catch (e) {
       console.error('Error sharing report:', e);
@@ -139,7 +116,7 @@ SUGGESTED PORTFOLIO SPLIT
   };
 
   const metrics = reportData?.metrics;
-  const gemini = reportData?.geminiReport;
+  const report = reportData?.report;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -162,6 +139,14 @@ SUGGESTED PORTFOLIO SPLIT
           <RefreshControl refreshing={loading} onRefresh={fetchReport} />
         }
       >
+        {/* Error notification banner */}
+        {errorMessage ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={18} color="#DC2626" />
+            <Text style={styles.errorBannerText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+
         {/* Action Header Button */}
         <View style={styles.actionBanner}>
           <TouchableOpacity
@@ -233,7 +218,7 @@ SUGGESTED PORTFOLIO SPLIT
             </View>
             <Text style={styles.emptyTitle}>No Financial Audit Yet</Text>
             <Text style={styles.emptySubtitle}>
-              Tap the button above to run Gemini AI's deep analysis on your MongoDB income, expenses, and investment goals.
+              Tap the button above to run Gemini AI's personalized audit across your MongoDB income, expenses, budgets, and investments.
             </Text>
           </View>
         ) : activeTab === 'ai-report' ? (
@@ -244,44 +229,63 @@ SUGGESTED PORTFOLIO SPLIT
               <View style={styles.scoreLeft}>
                 <Text style={styles.scoreLabel}>Financial Health Score</Text>
                 <View style={styles.scoreRow}>
-                  <Text style={styles.scoreNumber}>{metrics?.healthScore || 0}</Text>
+                  <Text style={styles.scoreNumber}>
+                    {report?.healthScore ?? metrics?.healthScore ?? 0}
+                  </Text>
                   <Text style={styles.scoreMax}>/100</Text>
                 </View>
                 <View style={styles.velocityBadge}>
                   <Ionicons name="speedometer-outline" size={14} color="#047857" />
                   <Text style={styles.velocityText}>
-                    Velocity: {metrics?.netWorthVelocity || 'Stable'}
+                    Velocity: {report?.netWorthVelocity || metrics?.netWorthVelocity || 'Stable'}
                   </Text>
                 </View>
               </View>
               <View style={styles.scoreRight}>
                 <Ionicons
                   name={
-                    (metrics?.healthScore || 0) >= 75
+                    (report?.healthScore ?? metrics?.healthScore ?? 0) >= 75
                       ? 'shield-checkmark'
                       : 'alert-circle'
                   }
                   size={54}
-                  color={(metrics?.healthScore || 0) >= 75 ? '#10B981' : '#F59E0B'}
+                  color={
+                    (report?.healthScore ?? metrics?.healthScore ?? 0) >= 75
+                      ? '#10B981'
+                      : '#F59E0B'
+                  }
                 />
               </View>
             </View>
 
-            {/* Executive Summary */}
+            {/* Audit Title Card */}
+            {report?.title ? (
+              <View style={styles.titleCard}>
+                <Ionicons name="ribbon-outline" size={20} color="#D97706" />
+                <Text style={styles.reportTitleText}>{report.title}</Text>
+              </View>
+            ) : null}
+
+            {/* Strategic Observations / Insights */}
             <View style={styles.sectionCard}>
               <View style={styles.cardHeader}>
                 <View style={[styles.cardHeaderIcon, { backgroundColor: '#EFF6FF' }]}>
                   <Ionicons name="bulb-outline" size={18} color="#2563EB" />
                 </View>
-                <Text style={styles.cardTitle}>Executive Diagnosis</Text>
+                <Text style={styles.cardTitle}>AI Financial Insights</Text>
               </View>
-              <Text style={styles.summaryText}>
-                {gemini?.executiveSummary ||
-                  'Your financial surplus is currently positive. Increasing automated allocations to diversified index funds will accelerate your net worth velocity.'}
-              </Text>
+              {(report?.insights || [
+                'Healthy monthly surplus detected from current cash inflows.',
+                'Categorized outlays reflect disciplined essential living expenditure.',
+              ]).map((ins, i) => (
+                <View key={i} style={styles.listItem}>
+                  <Ionicons name="checkmark-circle" size={16} color="#2563EB" />
+                  <Text style={styles.listItemText}>{ins}</Text>
+                </View>
+              ))}
             </View>
 
-            {/* Strategic Recommendations */}
+            {/* Action Recommendations */}
             <View style={styles.sectionCard}>
               <View style={styles.cardHeader}>
                 <View style={[styles.cardHeaderIcon, { backgroundColor: '#ECFDF5' }]}>
@@ -289,10 +293,9 @@ SUGGESTED PORTFOLIO SPLIT
                 </View>
                 <Text style={styles.cardTitle}>Action Recommendations</Text>
               </View>
-              {(gemini?.actionableSuggestions || [
-                'Reduce discretionary dining by 15% to increase surplus by ₹3,000/mo.',
-                'Establish an emergency buffer of 3 months expenses.',
-                'Allocate investable surplus into low-cost index funds.',
+              {(report?.suggestions || [
+                'Automate allocation of remaining surplus to dollar-cost average into index funds.',
+                'Maintain category budget caps to maintain healthy savings velocity.',
               ]).map((rec, i) => (
                 <View key={i} style={styles.listItem}>
                   <Ionicons name="arrow-forward-circle" size={16} color="#059669" />
@@ -301,123 +304,172 @@ SUGGESTED PORTFOLIO SPLIT
               ))}
             </View>
 
-            {/* Suggested Capital Split */}
-            <View style={styles.sectionCard}>
-              <View style={styles.cardHeader}>
-                <View style={[styles.cardHeaderIcon, { backgroundColor: '#FEF3C7' }]}>
-                  <Ionicons name="pie-chart-outline" size={18} color="#D97706" />
+            {/* Investment & Capital Advice */}
+            {report?.investmentAdvice && report.investmentAdvice.length > 0 ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.cardHeaderIcon, { backgroundColor: '#FEF3C7' }]}>
+                    <Ionicons name="trending-up-outline" size={18} color="#D97706" />
+                  </View>
+                  <Text style={styles.cardTitle}>Investment Guidance</Text>
                 </View>
-                <Text style={styles.cardTitle}>Suggested Asset Allocation</Text>
+                {report.investmentAdvice.map((adv, i) => (
+                  <View key={i} style={styles.listItem}>
+                    <Ionicons name="cash-outline" size={16} color="#D97706" />
+                    <Text style={styles.listItemText}>{adv}</Text>
+                  </View>
+                ))}
               </View>
-              <Text style={styles.subtext}>
-                Recommended portfolio distribution based on your ₹
-                {(metrics?.investments?.investableSurplus || 0).toLocaleString('en-IN')}{' '}
-                investable surplus:
-              </Text>
+            ) : null}
 
-              <View style={styles.splitRow}>
-                <View style={[styles.splitBox, { borderColor: '#DBEAFE' }]}>
-                  <Text style={styles.splitBoxTitle}>Stocks (50%)</Text>
-                  <Text style={styles.splitBoxAmount}>
-                    ₹
-                    {(
-                      metrics?.investments?.suggestedSplit?.for_Stocks || 0
-                    ).toLocaleString('en-IN')}
-                  </Text>
+            {/* Suggested Capital Split */}
+            {metrics?.investments ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.cardHeaderIcon, { backgroundColor: '#FEF3C7' }]}>
+                    <Ionicons name="pie-chart-outline" size={18} color="#D97706" />
+                  </View>
+                  <Text style={styles.cardTitle}>Suggested Asset Allocation</Text>
                 </View>
-                <View style={[styles.splitBox, { borderColor: '#D1FAE5' }]}>
-                  <Text style={styles.splitBoxTitle}>Mutual Funds (30%)</Text>
-                  <Text style={styles.splitBoxAmount}>
-                    ₹
-                    {(
-                      metrics?.investments?.suggestedSplit?.for_Mutualfunds || 0
-                    ).toLocaleString('en-IN')}
-                  </Text>
-                </View>
-                <View style={[styles.splitBox, { borderColor: '#FEF3C7' }]}>
-                  <Text style={styles.splitBoxTitle}>Gold (20%)</Text>
-                  <Text style={styles.splitBoxAmount}>
-                    ₹
-                    {(
-                      metrics?.investments?.suggestedSplit?.for_Gold || 0
-                    ).toLocaleString('en-IN')}
-                  </Text>
+                <Text style={styles.subtext}>
+                  Recommended portfolio distribution based on your ₹
+                  {(metrics.investments.investableSurplus || 0).toLocaleString('en-IN')}{' '}
+                  investable surplus:
+                </Text>
+
+                <View style={styles.splitRow}>
+                  <View style={[styles.splitBox, { borderColor: '#DBEAFE' }]}>
+                    <Text style={styles.splitBoxTitle}>Stocks (50%)</Text>
+                    <Text style={styles.splitBoxAmount}>
+                      ₹
+                      {(
+                        metrics.investments.suggestedSplit?.for_Stocks || 0
+                      ).toLocaleString('en-IN')}
+                    </Text>
+                  </View>
+                  <View style={[styles.splitBox, { borderColor: '#D1FAE5' }]}>
+                    <Text style={styles.splitBoxTitle}>Mutual Funds (30%)</Text>
+                    <Text style={styles.splitBoxAmount}>
+                      ₹
+                      {(
+                        metrics.investments.suggestedSplit?.for_Mutualfunds || 0
+                      ).toLocaleString('en-IN')}
+                    </Text>
+                  </View>
+                  <View style={[styles.splitBox, { borderColor: '#FEF3C7' }]}>
+                    <Text style={styles.splitBoxTitle}>Gold (20%)</Text>
+                    <Text style={styles.splitBoxAmount}>
+                      ₹
+                      {(
+                        metrics.investments.suggestedSplit?.for_Gold || 0
+                      ).toLocaleString('en-IN')}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            ) : null}
           </View>
         ) : (
           /* --- ANALYTICS TAB --- */
           <View style={styles.tabContent}>
-            {/* Top Spending Categories */}
-            <View style={styles.sectionCard}>
-              <View style={styles.cardHeader}>
-                <View style={[styles.cardHeaderIcon, { backgroundColor: '#F3F4F6' }]}>
-                  <Ionicons name="list" size={18} color="#111827" />
-                </View>
-                <Text style={styles.cardTitle}>Spending by Category</Text>
+            {/* Core Metrics Grid */}
+            <View style={styles.metricsGrid}>
+              <View style={styles.metricTile}>
+                <Text style={styles.tileLabel}>Total Income</Text>
+                <Text style={[styles.tileValue, { color: '#059669' }]}>
+                  ₹{(metrics?.totalIncome || 0).toLocaleString('en-IN')}
+                </Text>
               </View>
-
-              {(metrics?.categoryExpenses || []).map((cat, i) => (
-                <View key={cat.category || i} style={styles.categoryItem}>
-                  <View style={styles.categoryRowTop}>
-                    <Text style={styles.categoryName}>{cat.category}</Text>
-                    <Text style={styles.categoryAmount}>
-                      ₹{cat.amount.toLocaleString('en-IN')} ({cat.percentageOfTotal}%)
-                    </Text>
-                  </View>
-                  <View style={styles.progressBarBg}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        {
-                          width: `${Math.min(100, cat.percentageOfTotal)}%`,
-                          backgroundColor: '#2563EB',
-                        },
-                      ]}
-                    />
-                  </View>
-                </View>
-              ))}
+              <View style={styles.metricTile}>
+                <Text style={styles.tileLabel}>Total Expenses</Text>
+                <Text style={[styles.tileValue, { color: '#DC2626' }]}>
+                  ₹{(metrics?.totalExpenses || 0).toLocaleString('en-IN')}
+                </Text>
+              </View>
+              <View style={styles.metricTile}>
+                <Text style={styles.tileLabel}>Net Surplus</Text>
+                <Text
+                  style={[
+                    styles.tileValue,
+                    {
+                      color: (metrics?.netSurplus || 0) >= 0 ? '#059669' : '#DC2626',
+                    },
+                  ]}
+                >
+                  ₹{(metrics?.netSurplus || 0).toLocaleString('en-IN')}
+                </Text>
+              </View>
+              <View style={styles.metricTile}>
+                <Text style={styles.tileLabel}>Savings Ratio</Text>
+                <Text style={[styles.tileValue, { color: '#D97706' }]}>
+                  {metrics?.savingsRatio || 0}%
+                </Text>
+              </View>
             </View>
 
-            {/* Budget Utilization Breakdown */}
+            {/* Category Expenses Breakdown */}
             <View style={styles.sectionCard}>
               <View style={styles.cardHeader}>
-                <View style={[styles.cardHeaderIcon, { backgroundColor: '#FEE2E2' }]}>
-                  <Ionicons name="warning-outline" size={18} color="#DC2626" />
+                <View style={[styles.cardHeaderIcon, { backgroundColor: '#EFF6FF' }]}>
+                  <Ionicons name="bar-chart-outline" size={18} color="#2563EB" />
                 </View>
-                <Text style={styles.cardTitle}>Budget Limit Performance</Text>
+                <Text style={styles.cardTitle}>Category Expense Breakdown</Text>
               </View>
 
-              {(metrics?.budgetMetrics?.budgets || []).map((b, i) => (
-                <View key={b.category || i} style={styles.categoryItem}>
-                  <View style={styles.categoryRowTop}>
-                    <Text style={styles.categoryName}>{b.category}</Text>
-                    <Text
-                      style={[
-                        styles.categoryAmount,
-                        b.isOverBudget && { color: '#DC2626' },
-                      ]}
-                    >
-                      ₹{b.spent.toLocaleString('en-IN')} / ₹{b.limit.toLocaleString('en-IN')}
-                      {b.isOverBudget ? ' (OVER)' : ''}
+              {!metrics?.categoryExpenses || metrics.categoryExpenses.length === 0 ? (
+                <Text style={styles.emptyCategoryText}>No category expenses recorded</Text>
+              ) : (
+                metrics.categoryExpenses.map((cat, i) => (
+                  <View key={cat.category || i} style={styles.catBreakdownItem}>
+                    <View style={styles.catBreakdownTop}>
+                      <Text style={styles.catName}>{cat.category}</Text>
+                      <Text style={styles.catAmount}>
+                        ₹{cat.amount.toLocaleString('en-IN')} ({cat.percentageOfTotal}%)
+                      </Text>
+                    </View>
+                    <View style={styles.catBarBg}>
+                      <View
+                        style={[
+                          styles.catBarFill,
+                          { width: `${Math.min(100, cat.percentageOfTotal)}%` },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+
+            {/* Budget Utilization Adherence */}
+            {metrics?.budgetMetrics ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.cardHeaderIcon, { backgroundColor: '#ECFDF5' }]}>
+                    <Ionicons name="shield-checkmark-outline" size={18} color="#059669" />
+                  </View>
+                  <Text style={styles.cardTitle}>Budget Adherence</Text>
+                </View>
+
+                <View style={styles.budgetOverviewRow}>
+                  <View style={styles.budgetOverviewBox}>
+                    <Text style={styles.budgetOverviewLabel}>Total Budget Limit</Text>
+                    <Text style={styles.budgetOverviewValue}>
+                      ₹{(metrics.budgetMetrics.totalBudgetLimit || 0).toLocaleString('en-IN')}
                     </Text>
                   </View>
-                  <View style={styles.progressBarBg}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        {
-                          width: `${Math.min(100, b.utilizationPercent)}%`,
-                          backgroundColor: b.isOverBudget ? '#DC2626' : '#10B981',
-                        },
-                      ]}
-                    />
+                  <View style={styles.budgetOverviewBox}>
+                    <Text style={styles.budgetOverviewLabel}>Total Spent</Text>
+                    <Text style={styles.budgetOverviewValue}>
+                      ₹{(metrics.budgetMetrics.totalBudgetSpent || 0).toLocaleString('en-IN')}
+                    </Text>
                   </View>
                 </View>
-              ))}
-            </View>
+
+                <Text style={styles.utilizationText}>
+                  Overall Utilization: {metrics.budgetMetrics.overallUtilizationPercent}%
+                </Text>
+              </View>
+            ) : null}
           </View>
         )}
       </ScrollView>
@@ -438,22 +490,38 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
     gap: 16,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    padding: 12,
+    borderRadius: 12,
+  },
+  errorBannerText: {
+    color: '#B91C1C',
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
   exportBtn: {
     padding: 8,
     backgroundColor: '#F3F4F6',
     borderRadius: 12,
   },
   actionBanner: {
-    marginBottom: 4,
+    gap: 8,
   },
   generateBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     backgroundColor: '#111827',
     paddingVertical: 14,
-    borderRadius: 18,
-    gap: 8,
+    borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -461,7 +529,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   generateBtnDisabled: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   generateBtnText: {
     color: '#FFFFFF',
@@ -473,25 +541,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     borderRadius: 16,
     padding: 4,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   tabBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
     paddingVertical: 10,
     borderRadius: 12,
-    gap: 6,
   },
   tabBtnActive: {
     backgroundColor: '#111827',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   tabBtnText: {
     fontSize: 13,
@@ -501,21 +562,50 @@ const styles = StyleSheet.create({
   tabBtnTextActive: {
     color: '#FFFFFF',
   },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
   tabContent: {
     gap: 16,
   },
   scoreCard: {
-    backgroundColor: '#111827',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 22,
+    padding: 20,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   scoreLeft: {
     flex: 1,
@@ -523,45 +613,59 @@ const styles = StyleSheet.create({
   scoreLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: '#6B7280',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginVertical: 4,
+    marginTop: 4,
   },
   scoreNumber: {
-    fontSize: 38,
+    fontSize: 44,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: '#111827',
     letterSpacing: -1,
   },
   scoreMax: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontWeight: '700',
+    color: '#9CA3AF',
     marginLeft: 4,
   },
   velocityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#064E3B',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
     alignSelf: 'flex-start',
-    marginTop: 4,
+    marginTop: 8,
   },
   velocityText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#34D399',
+    fontWeight: '800',
+    color: '#047857',
   },
   scoreRight: {
-    paddingLeft: 12,
+    paddingLeft: 16,
+  },
+  titleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#FEF3C7',
+    padding: 14,
+    borderRadius: 16,
+  },
+  reportTitleText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#92400E',
+    flex: 1,
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
@@ -579,7 +683,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   cardHeaderIcon: {
     width: 32,
@@ -593,28 +697,23 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#111827',
   },
-  summaryText: {
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 10,
+  },
+  listItemText: {
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 20,
     color: '#374151',
+    flex: 1,
     fontWeight: '500',
   },
   subtext: {
     fontSize: 13,
     color: '#6B7280',
     marginBottom: 12,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    paddingVertical: 6,
-  },
-  listItemText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#374151',
     fontWeight: '500',
   },
   splitRow: {
@@ -623,74 +722,109 @@ const styles = StyleSheet.create({
   },
   splitBox: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderRadius: 14,
     padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    backgroundColor: '#F9FAFB',
     alignItems: 'center',
   },
   splitBoxTitle: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: '#6B7280',
-    marginBottom: 4,
+    textAlign: 'center',
   },
   splitBoxAmount: {
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#111827',
+    marginTop: 4,
+    textAlign: 'center',
   },
-  categoryItem: {
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  metricTile: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  tileLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+  },
+  tileValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    marginTop: 4,
+  },
+  catBreakdownItem: {
     marginBottom: 12,
   },
-  categoryRowTop: {
+  catBreakdownTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  categoryName: {
+  catName: {
     fontSize: 13,
     fontWeight: '700',
     color: '#374151',
   },
-  categoryAmount: {
+  catAmount: {
     fontSize: 12,
     fontWeight: '600',
     color: '#6B7280',
   },
-  progressBarBg: {
+  catBarBg: {
     height: 6,
     backgroundColor: '#F3F4F6',
     borderRadius: 3,
     overflow: 'hidden',
   },
-  progressBarFill: {
+  catBarFill: {
     height: '100%',
+    backgroundColor: '#2563EB',
     borderRadius: 3,
   },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
+  emptyCategoryText: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+  },
+  budgetOverviewRow: {
+    flexDirection: 'row',
     gap: 12,
+    marginBottom: 12,
   },
-  emptyIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
+  budgetOverviewBox: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 14,
   },
-  emptyTitle: {
-    fontSize: 18,
+  budgetOverviewLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  budgetOverviewValue: {
+    fontSize: 16,
     fontWeight: '800',
     color: '#111827',
+    marginTop: 2,
   },
-  emptySubtitle: {
+  utilizationText: {
     fontSize: 13,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 20,
+    fontWeight: '700',
+    color: '#059669',
   },
 });

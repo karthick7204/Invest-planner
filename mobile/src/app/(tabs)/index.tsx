@@ -7,100 +7,94 @@ import {
   RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/Header';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
+import { SetBudgetModal } from '@/components/SetBudgetModal';
 import { apiCall } from '@/services/api';
-
-interface Transaction {
-  _id?: string;
-  id?: string;
-  amount: number;
-  category: string;
-  topic?: string;
-  type?: 'expense' | 'income';
-  date?: string;
-}
-
-interface Budget {
-  _id?: string;
-  category: string;
-  limit: number;
-  spent: number;
-}
+import { Transaction, Budget } from '@/types/api';
 
 export default function DashboardScreen() {
   const [totalIncome, setTotalIncome] = useState<number>(0);
   const [totalExpense, setTotalExpense] = useState<number>(0);
+  const [surplus, setSurplus] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [addTxVisible, setAddTxVisible] = useState<boolean>(false);
+  const [setBudgetVisible, setSetBudgetVisible] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
+    setErrorMessage(null);
     try {
-      // 1. Fetch Expenses
-      const expenseRes = await apiCall('/expense/expenses').catch(() => null);
-      let expSum = 0;
-      let expList: Transaction[] = [];
-      if (expenseRes && expenseRes.expenses) {
-        expList = expenseRes.expenses.map((e: any) => ({
-          ...e,
-          type: 'expense',
-        }));
-        expSum = expList.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
-      }
-      setTotalExpense(expSum);
+      const currentMonth = new Date().toISOString().substring(0, 7);
 
-      // 2. Fetch Incomes
-      const incomeRes = await apiCall('/expense/income').catch(() => null);
-      let incSum = 0;
-      let incList: Transaction[] = [];
-      if (incomeRes && incomeRes.incomes) {
-        incList = incomeRes.incomes.map((i: any) => ({
-          ...i,
-          type: 'income',
-        }));
-        incSum = incList.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
-      }
-      setTotalIncome(incSum);
-
-      // 3. Combine Recent Transactions sorted by date
-      const allTx = [...expList, ...incList].sort((a, b) => {
-        const dateA = a.date ? new Date(a.date).getTime() : 0;
-        const dateB = b.date ? new Date(b.date).getTime() : 0;
-        return dateB - dateA;
-      });
-      setTransactions(allTx.slice(0, 10));
-
-      // 4. Fetch Budgets
-      const budgetRes = await apiCall('/budget').catch(() => null);
-      if (budgetRes && budgetRes.budgets) {
-        // Calculate spent per category
-        const catMap: Record<string, number> = {};
-        expList.forEach((e) => {
-          catMap[e.category] = (catMap[e.category] || 0) + (Number(e.amount) || 0);
-        });
-
-        const budgetWithSpent = budgetRes.budgets.map((b: any) => ({
-          ...b,
-          spent: catMap[b.category] || 0,
-        }));
-        setBudgets(budgetWithSpent);
-      } else {
-        // Fallback default budget metrics if not set
-        setBudgets([
-          { category: 'Food', limit: 8000, spent: expList.filter(e => e.category === 'Food').reduce((s, c) => s + c.amount, 0) },
-          { category: 'Shopping', limit: 5000, spent: expList.filter(e => e.category === 'Shopping').reduce((s, c) => s + c.amount, 0) },
-          { category: 'Transport', limit: 4000, spent: expList.filter(e => e.category === 'Transport').reduce((s, c) => s + c.amount, 0) },
+      // Execute dashboard queries in parallel
+      const [incomeRes, expenseRes, surplusRes, txRes, budgetRes] =
+        await Promise.allSettled([
+          apiCall('/expense/income'),
+          apiCall('/expense/expenses'),
+          apiCall('/expense/surplusincome'),
+          apiCall('/expense/transactions?limit=50'),
+          apiCall(`/budget?month=${currentMonth}`),
         ]);
+
+      // 1. Process Incomes
+      let calculatedIncome = 0;
+      if (incomeRes.status === 'fulfilled' && incomeRes.value) {
+        const incomeList = incomeRes.value.income || [];
+        calculatedIncome = incomeList.reduce(
+          (sum: number, item: any) => sum + (Number(item.amount) || 0),
+          0
+        );
       }
-    } catch (err) {
+      setTotalIncome(calculatedIncome);
+
+      // 2. Process Expenses
+      let calculatedExpense = 0;
+      if (expenseRes.status === 'fulfilled' && expenseRes.value) {
+        const expenseList = expenseRes.value.expenses || [];
+        calculatedExpense = expenseList.reduce(
+          (sum: number, item: any) => sum + (Number(item.amount) || 0),
+          0
+        );
+      }
+      setTotalExpense(calculatedExpense);
+
+      // 3. Process Surplus
+      if (
+        surplusRes.status === 'fulfilled' &&
+        surplusRes.value &&
+        surplusRes.value.surplus !== undefined
+      ) {
+        setSurplus(Number(surplusRes.value.surplus) || 0);
+      } else {
+        setSurplus(calculatedIncome - calculatedExpense);
+      }
+
+      // 4. Process Transactions
+      if (txRes.status === 'fulfilled' && txRes.value?.transactions) {
+        setTransactions(txRes.value.transactions);
+      } else {
+        setTransactions([]);
+      }
+
+      // 5. Process Budgets
+      if (budgetRes.status === 'fulfilled' && budgetRes.value?.budgets) {
+        setBudgets(budgetRes.value.budgets);
+      } else {
+        setBudgets([]);
+      }
+    } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
+      setErrorMessage(
+        err?.message || 'Failed to sync live data from server. Pull down to retry.'
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -116,8 +110,59 @@ export default function DashboardScreen() {
     fetchDashboardData();
   };
 
-  const netSurplus = totalIncome - totalExpense;
-  const savingsRatio = totalIncome > 0 ? Math.round((netSurplus / totalIncome) * 100) : 0;
+  const handleDeleteTransaction = (id: string, name: string) => {
+    Alert.alert(
+      'Delete Transaction',
+      `Are you sure you want to delete "${name}"? This will update your daily totals and surplus.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiCall(`/expense/transaction/${id}`, { method: 'DELETE' });
+              fetchDashboardData();
+            } catch (error: any) {
+              Alert.alert('Error', error?.message || 'Failed to delete transaction.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteBudget = (budgetId: string, category: string) => {
+    Alert.alert(
+      'Delete Budget',
+      `Delete monthly budget target for ${category}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiCall(`/budget/${budgetId}`, { method: 'DELETE' });
+              fetchDashboardData();
+            } catch (error: any) {
+              Alert.alert('Error', error?.message || 'Failed to delete budget.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Derived financial ratios matching web app
+  const savingsRatio =
+    totalIncome > 0 ? Math.round((surplus / totalIncome) * 100) : 0;
+
+  // Investment split recommendations from positive surplus (50% stocks, 30% mutual funds, 20% gold)
+  const investable = Math.max(0, surplus);
+  const stockSplit = Math.round(investable * 0.5);
+  const mutualFundSplit = Math.round(investable * 0.3);
+  const goldSplit = Math.round(investable * 0.2);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -126,10 +171,10 @@ export default function DashboardScreen() {
         subtitle="Live metrics & synchronized cashflow"
         rightAction={
           <TouchableOpacity
-            onPress={() => setModalVisible(true)}
+            onPress={() => setAddTxVisible(true)}
             style={styles.addBtn}
           >
-            <Ionicons name="add" size={20} color="#FFFFFF" />
+            <Ionicons name="add" size={18} color="#FFFFFF" />
             <Text style={styles.addBtnText}>Add</Text>
           </TouchableOpacity>
         }
@@ -142,6 +187,14 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Error notification banner */}
+        {errorMessage ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={18} color="#DC2626" />
+            <Text style={styles.errorBannerText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+
         {loading ? (
           <View style={styles.loadingWrapper}>
             <ActivityIndicator size="large" color="#111827" />
@@ -149,31 +202,33 @@ export default function DashboardScreen() {
           </View>
         ) : (
           <>
-            {/* Surplus Hero Card */}
+            {/* Surplus Hero Card (matching web Wealth Pilot theme) */}
             <View style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <View>
                   <Text style={styles.heroLabel}>Net Surplus</Text>
                   <Text style={styles.heroAmount}>
-                    ₹{Math.abs(netSurplus).toLocaleString('en-IN')}
-                    {netSurplus < 0 ? ' (Deficit)' : ''}
+                    ₹{Math.abs(surplus).toLocaleString('en-IN')}
+                    {surplus < 0 ? ' (Deficit)' : ''}
                   </Text>
                 </View>
                 <View
                   style={[
                     styles.ratioBadge,
-                    netSurplus < 0 ? styles.ratioBadgeNegative : styles.ratioBadgePositive,
+                    surplus < 0 ? styles.ratioBadgeNegative : styles.ratioBadgePositive,
                   ]}
                 >
                   <Ionicons
-                    name={netSurplus >= 0 ? 'trending-up' : 'trending-down'}
+                    name={surplus >= 0 ? 'trending-up' : 'trending-down'}
                     size={14}
-                    color={netSurplus >= 0 ? '#047857' : '#B91C1C'}
+                    color={surplus >= 0 ? '#047857' : '#B91C1C'}
                   />
                   <Text
                     style={[
                       styles.ratioBadgeText,
-                      netSurplus < 0 ? styles.ratioBadgeTextNegative : styles.ratioBadgeTextPositive,
+                      surplus < 0
+                        ? styles.ratioBadgeTextNegative
+                        : styles.ratioBadgeTextPositive,
                     ]}
                   >
                     {savingsRatio}% Saved
@@ -181,7 +236,7 @@ export default function DashboardScreen() {
                 </View>
               </View>
               <Text style={styles.heroSubtext}>
-                {netSurplus >= 0
+                {surplus >= 0
                   ? 'Healthy surplus available for asset allocation & growth'
                   : 'Spending exceeds income. Check AI recommendations in Reports.'}
               </Text>
@@ -218,29 +273,97 @@ export default function DashboardScreen() {
               </View>
             </View>
 
+            {/* Suggested Asset Allocation Card */}
+            {investable > 0 ? (
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionHeaderLeft}>
+                    <Ionicons name="pie-chart" size={18} color="#111827" />
+                    <Text style={styles.sectionTitle}>Asset Allocation</Text>
+                  </View>
+                  <Text style={styles.sectionBadge}>Investable: ₹{investable.toLocaleString('en-IN')}</Text>
+                </View>
+
+                <View style={styles.allocationRow}>
+                  <View style={[styles.allocationItem, { borderColor: '#DBEAFE' }]}>
+                    <Text style={styles.allocationPercent}>50%</Text>
+                    <Text style={styles.allocationCategory}>Stocks</Text>
+                    <Text style={styles.allocationValue}>₹{stockSplit.toLocaleString('en-IN')}</Text>
+                  </View>
+
+                  <View style={[styles.allocationItem, { borderColor: '#D1FAE5' }]}>
+                    <Text style={styles.allocationPercent}>30%</Text>
+                    <Text style={styles.allocationCategory}>Mutual Funds</Text>
+                    <Text style={styles.allocationValue}>₹{mutualFundSplit.toLocaleString('en-IN')}</Text>
+                  </View>
+
+                  <View style={[styles.allocationItem, { borderColor: '#FEF3C7' }]}>
+                    <Text style={styles.allocationPercent}>20%</Text>
+                    <Text style={styles.allocationCategory}>Gold</Text>
+                    <Text style={styles.allocationValue}>₹{goldSplit.toLocaleString('en-IN')}</Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
             {/* Budget Performance Section */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionHeaderLeft}>
-                  <Ionicons name="pie-chart" size={18} color="#111827" />
-                  <Text style={styles.sectionTitle}>Budget Status</Text>
+                  <Ionicons name="compass" size={18} color="#111827" />
+                  <Text style={styles.sectionTitle}>Budget Goals</Text>
                 </View>
+                <TouchableOpacity
+                  onPress={() => setSetBudgetVisible(true)}
+                  style={styles.setBudgetBtn}
+                >
+                  <Ionicons name="add" size={14} color="#D97706" />
+                  <Text style={styles.setBudgetBtnText}>Set Budget</Text>
+                </TouchableOpacity>
               </View>
 
               {budgets.length === 0 ? (
-                <Text style={styles.emptyText}>No budgets set for this cycle</Text>
+                <View style={styles.emptyWrapper}>
+                  <Ionicons name="flag-outline" size={32} color="#D1D5DB" />
+                  <Text style={styles.emptyText}>No budgets defined for this month</Text>
+                  <TouchableOpacity
+                    onPress={() => setSetBudgetVisible(true)}
+                    style={styles.emptyAddBtn}
+                  >
+                    <Text style={styles.emptyAddBtnText}>Define First Target</Text>
+                  </TouchableOpacity>
+                </View>
               ) : (
-                budgets.map((b, idx) => {
-                  const percent = b.limit > 0 ? Math.min(100, Math.round((b.spent / b.limit) * 100)) : 0;
-                  const isOver = b.spent > b.limit;
+                budgets.map((b) => {
+                  const percent =
+                    b.limit > 0 ? Math.min(100, Math.round((b.spent / b.limit) * 100)) : 0;
+                  const isOver = b.isExceeded || b.spent > b.limit;
+
                   return (
-                    <View key={b.category || idx} style={styles.budgetItem}>
+                    <View key={b._id || b.category} style={styles.budgetItem}>
                       <View style={styles.budgetRowTop}>
-                        <Text style={styles.budgetName}>{b.category}</Text>
-                        <Text style={styles.budgetNumbers}>
-                          ₹{b.spent.toLocaleString('en-IN')} / ₹{b.limit.toLocaleString('en-IN')}
-                        </Text>
+                        <View style={styles.budgetCatRow}>
+                          <Text style={styles.budgetName}>{b.category}</Text>
+                          {isOver ? (
+                            <View style={styles.overBadge}>
+                              <Text style={styles.overBadgeText}>Exceeded</Text>
+                            </View>
+                          ) : null}
+                        </View>
+                        <View style={styles.budgetRightRow}>
+                          <Text style={styles.budgetNumbers}>
+                            ₹{b.spent.toLocaleString('en-IN')} / ₹{b.limit.toLocaleString('en-IN')}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => handleDeleteBudget(b._id, b.category)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            style={styles.trashBtn}
+                          >
+                            <Ionicons name="trash-outline" size={14} color="#9CA3AF" />
+                          </TouchableOpacity>
+                        </View>
                       </View>
+
                       {/* Progress Bar */}
                       <View style={styles.progressBarBg}>
                         <View
@@ -265,61 +388,79 @@ export default function DashboardScreen() {
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionHeaderLeft}>
-                  <Ionicons name="time" size={18} color="#111827" />
+                  <Ionicons name="receipt-outline" size={18} color="#111827" />
                   <Text style={styles.sectionTitle}>Recent Transactions</Text>
                 </View>
-                <Text style={styles.sectionBadge}>{transactions.length} items</Text>
+                <Text style={styles.sectionBadge}>{transactions.length} records</Text>
               </View>
 
               {transactions.length === 0 ? (
                 <View style={styles.emptyWrapper}>
-                  <Ionicons name="receipt-outline" size={36} color="#9CA3AF" />
+                  <Ionicons name="receipt-outline" size={32} color="#D1D5DB" />
                   <Text style={styles.emptyText}>No transactions recorded yet</Text>
                   <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
+                    onPress={() => setAddTxVisible(true)}
                     style={styles.emptyAddBtn}
                   >
-                    <Text style={styles.emptyAddBtnText}>+ Add First Record</Text>
+                    <Text style={styles.emptyAddBtnText}>Add First Transaction</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
-                transactions.map((tx, idx) => {
-                  const isExpense = tx.type === 'expense';
-                  const dateStr = tx.date ? new Date(tx.date).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'short',
-                  }) : 'Recent';
+                transactions.slice(0, 15).map((t) => {
+                  const isExp = t.type === 'expense';
+                  const dateStr = t.date
+                    ? new Date(t.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })
+                    : 'Recent';
 
                   return (
-                    <View key={tx._id || tx.id || idx} style={styles.txRow}>
+                    <View key={t._id || t.id || `${t.topic}-${t.amount}`} style={styles.txRow}>
                       <View style={styles.txLeft}>
                         <View
                           style={[
                             styles.txIconWrap,
-                            isExpense ? styles.txIconWrapExpense : styles.txIconWrapIncome,
+                            isExp ? styles.txIconWrapExpense : styles.txIconWrapIncome,
                           ]}
                         >
                           <Ionicons
-                            name={isExpense ? 'arrow-down' : 'arrow-up'}
+                            name={isExp ? 'arrow-down' : 'arrow-up'}
                             size={14}
-                            color={isExpense ? '#DC2626' : '#059669'}
+                            color={isExp ? '#DC2626' : '#059669'}
                           />
                         </View>
-                        <View>
-                          <Text style={styles.txTitle}>{tx.topic || tx.category}</Text>
+                        <View style={styles.txInfo}>
+                          <Text style={styles.txTitle} numberOfLines={1}>
+                            {t.topic || 'General'}
+                          </Text>
                           <Text style={styles.txCategory}>
-                            {tx.category} • {dateStr}
+                            {t.category} • {dateStr}
                           </Text>
                         </View>
                       </View>
-                      <Text
-                        style={[
-                          styles.txAmount,
-                          isExpense ? styles.txAmountExpense : styles.txAmountIncome,
-                        ]}
-                      >
-                        {isExpense ? '-' : '+'}₹{Number(tx.amount || 0).toLocaleString('en-IN')}
-                      </Text>
+
+                      <View style={styles.txRight}>
+                        <Text
+                          style={[
+                            styles.txAmount,
+                            isExp ? styles.txAmountExpense : styles.txAmountIncome,
+                          ]}
+                        >
+                          {isExp ? '-' : '+'}₹{t.amount.toLocaleString('en-IN')}
+                        </Text>
+                        {t._id ? (
+                          <TouchableOpacity
+                            onPress={() =>
+                              handleDeleteTransaction(t._id!, t.topic || t.category)
+                            }
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            style={styles.trashBtn}
+                          >
+                            <Ionicons name="trash-outline" size={14} color="#9CA3AF" />
+                          </TouchableOpacity>
+                        ) : null}
+                      </View>
                     </View>
                   );
                 })
@@ -329,10 +470,17 @@ export default function DashboardScreen() {
         )}
       </ScrollView>
 
-      {/* Add Modal */}
+      {/* Add Transaction Modal */}
       <AddTransactionModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        visible={addTxVisible}
+        onClose={() => setAddTxVisible(false)}
+        onSuccess={fetchDashboardData}
+      />
+
+      {/* Set Budget Modal */}
+      <SetBudgetModal
+        visible={setBudgetVisible}
+        onClose={() => setSetBudgetVisible(false)}
         onSuccess={fetchDashboardData}
       />
     </SafeAreaView>
@@ -349,42 +497,59 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 36,
     gap: 16,
   },
-  addBtn: {
+  errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111827',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    gap: 8,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    padding: 12,
     borderRadius: 12,
-    gap: 4,
   },
-  addBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
+  errorBannerText: {
+    color: '#B91C1C',
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
   },
   loadingWrapper: {
     paddingVertical: 60,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
   },
   loadingText: {
     fontSize: 14,
     color: '#6B7280',
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#111827',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  addBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   heroCard: {
-    backgroundColor: '#111827',
+    backgroundColor: '#FACC15',
     borderRadius: 24,
     padding: 22,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -393,30 +558,29 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   heroLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#9CA3AF',
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#713F12',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   heroAmount: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -1,
-    marginTop: 4,
+    color: '#111827',
+    letterSpacing: -0.5,
+    marginTop: 2,
   },
   ratioBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
-  ratioBadgePositive: {
-    backgroundColor: '#ECFDF5',
-  },
+  ratioBadgePositive: {},
   ratioBadgeNegative: {
     backgroundColor: '#FEE2E2',
   },
@@ -432,8 +596,8 @@ const styles = StyleSheet.create({
   },
   heroSubtext: {
     fontSize: 13,
-    color: '#9CA3AF',
-    fontWeight: '500',
+    color: '#854D0E',
+    fontWeight: '600',
   },
   twoColRow: {
     flexDirection: 'row',
@@ -463,6 +627,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#6B7280',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   incomeIconWrap: {
     width: 28,
@@ -482,21 +647,19 @@ const styles = StyleSheet.create({
   },
   incomeAmount: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#059669',
-    letterSpacing: -0.5,
+    fontWeight: '900',
+    color: '#111827',
   },
   expenseAmount: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#DC2626',
-    letterSpacing: -0.5,
+    fontWeight: '900',
+    color: '#111827',
   },
   metricCardSubtext: {
     fontSize: 11,
     color: '#9CA3AF',
-    fontWeight: '500',
     marginTop: 4,
+    fontWeight: '500',
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
@@ -535,6 +698,51 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
   },
+  setBudgetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  setBudgetBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D97706',
+  },
+  allocationRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  allocationItem: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+  },
+  allocationPercent: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+  },
+  allocationCategory: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  allocationValue: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#111827',
+    marginTop: 4,
+  },
   budgetItem: {
     marginBottom: 14,
   },
@@ -544,15 +752,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
+  budgetCatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   budgetName: {
     fontSize: 14,
     fontWeight: '700',
     color: '#374151',
   },
+  overBadge: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  overBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#DC2626',
+    textTransform: 'uppercase',
+  },
+  budgetRightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   budgetNumbers: {
     fontSize: 12,
     fontWeight: '600',
     color: '#6B7280',
+  },
+  trashBtn: {
+    padding: 4,
   },
   progressBarBg: {
     height: 8,
@@ -600,6 +833,9 @@ const styles = StyleSheet.create({
   txIconWrapIncome: {
     backgroundColor: '#D1FAE5',
   },
+  txInfo: {
+    flex: 1,
+  },
   txTitle: {
     fontSize: 14,
     fontWeight: '700',
@@ -609,6 +845,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginTop: 2,
+  },
+  txRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   txAmount: {
     fontSize: 15,
@@ -622,8 +863,8 @@ const styles = StyleSheet.create({
   },
   emptyWrapper: {
     alignItems: 'center',
-    paddingVertical: 32,
-    gap: 10,
+    paddingVertical: 24,
+    gap: 8,
   },
   emptyText: {
     fontSize: 13,
@@ -635,11 +876,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
-    marginTop: 6,
+    marginTop: 4,
   },
   emptyAddBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
 });

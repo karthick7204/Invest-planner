@@ -1,11 +1,19 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { useRouter } from 'expo-router';
-import { apiCall, setAuthToken } from '../services/api';
-
-const TOKEN_KEY = 'investplanner_auth_token';
-const USER_ID_KEY = 'investplanner_user_id';
-const USERNAME_KEY = 'investplanner_username';
+import {
+  apiCall,
+  setAuthToken,
+  saveUserData,
+  getUserData,
+  logout as apiLogout,
+  addUnauthorizedListener,
+} from '../services/api';
 
 interface UserData {
   userId: string | null;
@@ -30,33 +38,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize auth state from storage on app start
+  // Initialize auth state from AsyncStorage on app launch
   useEffect(() => {
+    let isMounted = true;
+
     const loadStoredAuth = async () => {
       try {
-        const [storedToken, storedUserId, storedUsername] = await Promise.all([
-          AsyncStorage.getItem(TOKEN_KEY),
-          AsyncStorage.getItem(USER_ID_KEY),
-          AsyncStorage.getItem(USERNAME_KEY),
-        ]);
-
-        if (storedToken) {
-          setTokenState(storedToken);
-          setAuthToken(storedToken);
+        const stored = await getUserData();
+        if (stored.token && isMounted) {
+          setTokenState(stored.token);
           setUser({
-            userId: storedUserId,
-            username: storedUsername || 'InvestPlanner User',
+            userId: stored.userId,
+            username: stored.username || 'User',
+            email: stored.email,
           });
         }
       } catch (e) {
         console.warn('Failed to load authentication state from storage:', e);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadStoredAuth();
-  }, []);
+
+    // Listen for 401 unauthorized session expiry
+    const unsubscribe = addUnauthorizedListener(() => {
+      if (isMounted) {
+        setTokenState(null);
+        setUser(null);
+        router.replace('/login');
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [router]);
 
   const login = async (username: string, email: string, password: string) => {
     setIsLoading(true);
@@ -70,25 +91,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }),
       });
 
-      const authToken = response.token || response.data?.token || 'session_token_' + Date.now();
+      const authToken = response.token || response.data?.token;
+      if (!authToken) {
+        throw new Error(
+          response.message || 'Login failed: Server did not return a valid session token.'
+        );
+      }
+
       const userData =
         response.userdata || response.data?.userdata || response.data?.saveduser;
-      const userId = userData?._id || response.userId || response.data?.userId || 'user_' + Date.now();
-      const confirmedName = username.trim() || userData?.username || 'InvestPlanner User';
+      const userId = userData?._id || response.userId || response.data?.userId || null;
+      const confirmedName = userData?.username || username.trim();
+      const confirmedEmail = userData?.email || email.trim();
 
-      // Persist to storage
-      await Promise.all([
-        AsyncStorage.setItem(TOKEN_KEY, authToken),
-        AsyncStorage.setItem(USER_ID_KEY, userId),
-        AsyncStorage.setItem(USERNAME_KEY, confirmedName),
-      ]);
+      // Persist to secure storage
+      await saveUserData({
+        token: authToken,
+        userId: userId || undefined,
+        username: confirmedName,
+        email: confirmedEmail,
+      });
 
       setTokenState(authToken);
-      setAuthToken(authToken);
       setUser({
         userId,
         username: confirmedName,
-        email: email.trim(),
+        email: confirmedEmail,
       });
 
       router.replace('/(tabs)');
@@ -109,25 +137,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }),
       });
 
-      const authToken = response.token || response.data?.token || 'session_token_' + Date.now();
+      const authToken = response.token || response.data?.token;
+      if (!authToken) {
+        throw new Error(
+          response.message ||
+            'Registration failed: Server did not return a valid session token.'
+        );
+      }
+
       const userData =
         response.userdata || response.data?.userdata || response.data?.saveduser;
-      const userId = userData?._id || response.userId || response.data?.userId || 'user_' + Date.now();
-      const confirmedName = username.trim() || userData?.username || 'InvestPlanner User';
+      const userId = userData?._id || response.userId || response.data?.userId || null;
+      const confirmedName = userData?.username || username.trim();
+      const confirmedEmail = userData?.email || email.trim();
 
-      // Persist to storage
-      await Promise.all([
-        AsyncStorage.setItem(TOKEN_KEY, authToken),
-        AsyncStorage.setItem(USER_ID_KEY, userId),
-        AsyncStorage.setItem(USERNAME_KEY, confirmedName),
-      ]);
+      // Persist to secure storage
+      await saveUserData({
+        token: authToken,
+        userId: userId || undefined,
+        username: confirmedName,
+        email: confirmedEmail,
+      });
 
       setTokenState(authToken);
-      setAuthToken(authToken);
       setUser({
         userId,
         username: confirmedName,
-        email: email.trim(),
+        email: confirmedEmail,
       });
 
       router.replace('/(tabs)');
@@ -139,16 +175,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([
-        AsyncStorage.removeItem(TOKEN_KEY),
-        AsyncStorage.removeItem(USER_ID_KEY),
-        AsyncStorage.removeItem(USERNAME_KEY),
-      ]);
-
+      await apiLogout();
       setTokenState(null);
-      setAuthToken(null);
       setUser(null);
-
       router.replace('/login');
     } finally {
       setIsLoading(false);
