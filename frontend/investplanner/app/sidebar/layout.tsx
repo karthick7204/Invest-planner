@@ -12,7 +12,7 @@ const fredoka = Fredoka({
 });
 
 export const metadata: Metadata = {
-  title: "InvestPlanner",
+  title: "Spendly",
   description: "Manage your finances smartly",
 };
 

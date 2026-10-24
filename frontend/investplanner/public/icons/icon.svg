@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="128" fill="#0f172a"/>
+  <circle cx="256" cy="256" r="170" fill="#facc15"/>
+  <circle cx="256" cy="256" r="162" stroke="#fef08a" stroke-width="4" fill="none"/>
+  <!-- Financial growth bars & arrow in dark slate -->
+  <rect x="176" y="270" width="36" height="74" rx="8" fill="#0f172a"/>
+  <rect x="238" y="220" width="36" height="124" rx="8" fill="#0f172a"/>
+  <rect x="300" y="170" width="36" height="174" rx="8" fill="#0f172a"/>
+  <!-- Trend Arrow -->
+  <path d="M170 230 L250 170 L300 210 L350 140" stroke="#0f172a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M330 140 H350 V160" stroke="#0f172a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

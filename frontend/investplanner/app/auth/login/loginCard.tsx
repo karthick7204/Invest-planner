@@ -69,7 +69,7 @@ export default function LoginCard() {
         {/* Header */}
         <div className="mb-8 flex flex-col items-center">
           <h1 className="text-4xl font-bold text-yellow-400">Login</h1>
-          <p className="text-gray-500 text-sm mt-2">Welcome back to Invest Planner</p>
+          <p className="text-gray-500 text-sm mt-2">Welcome back to Spendly</p>
         </div>
 
         {/* Form */}

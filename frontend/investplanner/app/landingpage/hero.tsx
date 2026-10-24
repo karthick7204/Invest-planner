@@ -11,7 +11,7 @@ export default function Hero() {
     }
     return (
         <div className="absolute top-45">
-            <h1 className="text-black font-bold text-6xl">Wealth <span className="text-yellow-400">Pilot</span></h1>
+            <h1 className="text-black font-bold text-6xl">Spend<span className="text-yellow-400">ly</span></h1>
             <p className="text-gray-600 ml-6 mt-2">Smart way to manage your financial life.</p>
 
             <div className="mt-2 flex flex-row items-center justify-center gap-4">

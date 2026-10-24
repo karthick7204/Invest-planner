@@ -74,10 +74,10 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Top Branding (matching web: Wealth Pilot.) */}
+          {/* Top Branding (matching web: Spendly.) */}
           <View style={styles.brandRow}>
             <Text style={styles.brandWealth}>
-              Wealth <Text style={styles.brandPilot}>Pilot.</Text>
+              Spend<Text style={styles.brandPilot}>ly.</Text>
             </Text>
           </View>
 

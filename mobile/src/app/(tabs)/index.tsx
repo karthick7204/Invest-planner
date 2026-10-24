@@ -202,7 +202,7 @@ export default function DashboardScreen() {
           </View>
         ) : (
           <>
-            {/* Surplus Hero Card (matching web Wealth Pilot theme) */}
+            {/* Surplus Hero Card (matching web Spendly theme) */}
             <View style={styles.heroCard}>
               <View style={styles.heroTopRow}>
                 <View>

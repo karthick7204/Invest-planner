@@ -107,7 +107,7 @@ export default function Reports() {
       });
       setReportData(response);
       try {
-        sessionStorage.setItem('investplanner_ai_report', JSON.stringify(response));
+        sessionStorage.setItem('spendly_ai_report', JSON.stringify(response));
       } catch (e) {
         // ignore storage errors
       }
@@ -122,7 +122,7 @@ export default function Reports() {
   useEffect(() => {
     // Check if the user already generated a report in this browser session
     try {
-      const cached = sessionStorage.getItem('investplanner_ai_report');
+      const cached = sessionStorage.getItem('spendly_ai_report') || sessionStorage.getItem('investplanner_ai_report');
       if (cached) {
         setReportData(JSON.parse(cached));
       }
@@ -142,7 +142,7 @@ export default function Reports() {
 
     const content = `
 =====================================================
-INVEST PLANNER - PERSONALIZED FINANCIAL AUDIT REPORT
+SPENDLY - PERSONALIZED FINANCIAL AUDIT REPORT
 Generated via Gemini AI & MongoDB
 Date: ${dateFormatted}
 =====================================================
@@ -187,7 +187,7 @@ ${metrics.categoryExpenses.map((c) => `- ${c.category}: ₹${c.amount.toLocaleSt
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `InvestPlanner_Report_${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = `Spendly_Report_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -630,7 +630,7 @@ ${metrics.categoryExpenses.map((c) => `- ${c.category}: ₹${c.amount.toLocaleSt
                       </div>
 
                       <p className="text-[11px] text-emerald-800/80 leading-relaxed font-medium">
-                        Allocation calculated dynamically using Invest Planner portfolio split algorithms based on positive cashflow.
+                        Allocation calculated dynamically using Spendly portfolio split algorithms based on positive cashflow.
                       </p>
                     </div>
                   </div>

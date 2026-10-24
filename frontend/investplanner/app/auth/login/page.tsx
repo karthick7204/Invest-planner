@@ -7,7 +7,7 @@ export default function LoginPage() {
                 backgroundSize: "22px 22px",
             }}
             className="bg-gray-100 h-lvh w-full flex flex-col items-center justify-center p-6 rounded-lg shadow-md">
-        <h1 className="absolute left-3 top-3 text-black font-bold text-3xl">Wealth <span className="text-yellow-400">Pilot.</span></h1>
+        <h1 className="absolute left-3 top-3 text-black font-bold text-3xl">Spend<span className="text-yellow-400">ly.</span></h1>
         <LoginCard />
         </div>
     )

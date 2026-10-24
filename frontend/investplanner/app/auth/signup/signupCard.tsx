@@ -80,7 +80,7 @@ export default function SignupCard() {
         {/* Header */}
         <div className="mb-6 flex flex-col items-center">
           <h1 className="text-3xl font-bold text-yellow-400">Signup</h1>
-          <p className="text-gray-500 text-xs mt-1">Create your Invest Planner account</p>
+          <p className="text-gray-500 text-xs mt-1">Create your Spendly account</p>
         </div>
 
         {/* Error Message */}
