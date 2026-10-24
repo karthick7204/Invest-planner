@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 import { Download, X, Share, PlusSquare } from 'lucide-react';
 
 export default function InstallPromptModal() {
   const { isInstallable, isInstalled, isIOS, triggerInstallPrompt } = usePwaInstall();
 
-  const [isDismissed, setIsDismissed] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    const dismissedTime = localStorage.getItem('spendly_pwa_dismissed');
-    if (!dismissedTime) return false;
-    const elapsed = Date.now() - parseInt(dismissedTime, 10);
-    // Suppress for 7 days if dismissed
-    return elapsed < 7 * 24 * 60 * 60 * 1000;
-  });
-
+  // In-memory dismissal only: disappears for this view, reappears on page refresh/reload
+  const [isDismissed, setIsDismissed] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+
+  // Clear any legacy localStorage/sessionStorage keys that previously hid the modal permanently
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('spendly_pwa_dismissed');
+      sessionStorage.removeItem('spendly_pwa_dismissed');
+    }
+  }, []);
 
   const showPrompt = isInstallable && !isInstalled && !isDismissed;
 
@@ -35,10 +36,8 @@ export default function InstallPromptModal() {
   };
 
   const handleDismiss = () => {
+    // Only hides for current page view without touching localStorage/sessionStorage
     setIsDismissed(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('spendly_pwa_dismissed', Date.now().toString());
-    }
   };
 
   return (

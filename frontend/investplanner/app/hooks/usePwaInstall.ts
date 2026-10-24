@@ -11,8 +11,34 @@ export interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+// Global module-level reference to ensure beforeinstallprompt is never missed
+let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+const promptListeners = new Set<(prompt: BeforeInstallPromptEvent | null) => void>();
+
+// Attach global listener immediately when running in browser
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e: Event) => {
+    e.preventDefault(); // Suppress automatic browser mini-infobar
+    globalDeferredPrompt = e as BeforeInstallPromptEvent;
+    
+    // Save on window for global access
+    (window as unknown as { __deferredPrompt?: BeforeInstallPromptEvent }).__deferredPrompt = globalDeferredPrompt;
+
+    promptListeners.forEach((listener) => listener(globalDeferredPrompt));
+  });
+
+  window.addEventListener('appinstalled', () => {
+    globalDeferredPrompt = null;
+    (window as unknown as { __deferredPrompt?: BeforeInstallPromptEvent | null }).__deferredPrompt = null;
+    promptListeners.forEach((listener) => listener(null));
+    console.log('[PWA] Successfully installed into system');
+  });
+}
+
 export function usePwaInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
+    () => globalDeferredPrompt
+  );
 
   const [isInstalled, setIsInstalled] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -32,15 +58,25 @@ export function usePwaInstall() {
 
   const [isInstallable, setIsInstallable] = useState(() => {
     if (typeof window === 'undefined') return false;
+    if (globalDeferredPrompt) return true;
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     const isSafari = /safari/.test(userAgent) && !/chrome|crios|fxios/.test(userAgent);
-    // On iOS Safari, it's installable via manual Add to Home Screen
     return isIosDevice && isSafari;
   });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // Subscribe to external global prompt events (safe callback subscription)
+    const handlePromptChange = (prompt: BeforeInstallPromptEvent | null) => {
+      setDeferredPrompt(prompt);
+      if (prompt) {
+        setIsInstallable(true);
+      }
+    };
+
+    promptListeners.add(handlePromptChange);
 
     // Listen to media query changes (e.g. user launches as standalone)
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
@@ -55,29 +91,19 @@ export function usePwaInstall() {
       mediaQuery.addEventListener('change', handleDisplayModeChange);
     }
 
-    // Capture beforeinstallprompt event (Chromium / Edge / Android)
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault(); // Suppress automatic browser mini-infobar
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
-    };
-
-    // Capture appinstalled event
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
-      console.log('[PWA] Successfully installed into system');
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
+      promptListeners.delete(handlePromptChange);
       if (mediaQuery.removeEventListener) {
         mediaQuery.removeEventListener('change', handleDisplayModeChange);
       }
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
@@ -87,15 +113,18 @@ export function usePwaInstall() {
       return 'ios';
     }
 
-    if (!deferredPrompt) {
+    const promptToUse = deferredPrompt || globalDeferredPrompt;
+    if (!promptToUse) {
+      console.warn('[PWA] No install prompt event available');
       return 'dismissed';
     }
 
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    await promptToUse.prompt();
+    const { outcome } = await promptToUse.userChoice;
 
-    setDeferredPrompt(null);
     if (outcome === 'accepted') {
+      globalDeferredPrompt = null;
+      setDeferredPrompt(null);
       setIsInstallable(false);
       setIsInstalled(true);
     }
