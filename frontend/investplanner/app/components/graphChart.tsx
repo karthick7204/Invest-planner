@@ -8,7 +8,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 
@@ -22,7 +21,7 @@ interface IncomeExpensesChartProps {
   data?: ChartData[];
   title?: string;
   height?: number;
-  dataKey?: "day" | "name";
+  dataKey?: 'day' | 'name';
 }
 
 const DEFAULT_DATA: ChartData[] = [
@@ -37,54 +36,60 @@ const DEFAULT_DATA: ChartData[] = [
 
 const IncomeExpensesChart: React.FC<IncomeExpensesChartProps> = ({
   data = DEFAULT_DATA,
-  title = 'Expense Analysis',
-  height = 400,
-  dataKey = "day",
+  height = 360,
+  dataKey = 'day',
 }) => {
   return (
-    <div className="w-full h-full bg-white rounded-xl">
+    <div className="w-full h-full bg-white">
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={data}
-          margin={{ top: 20, right: 10, left: 10, bottom: 20 }}
-          barCategoryGap="20%"
+          margin={{ top: 20, right: 10, left: 10, bottom: 10 }}
+          barCategoryGap="25%"
         >
           <defs>
-            <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity={1} />
-              <stop offset="100%" stopColor="#d97706" stopOpacity={0.8} />
+            <linearGradient id="monochromeBarGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#0a0a0a" stopOpacity={1} />
+              <stop offset="100%" stopColor="#262626" stopOpacity={0.85} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+          <CartesianGrid strokeDasharray="2 2" stroke="#f3f4f6" vertical={false} />
           <XAxis
             dataKey={dataKey}
-            tick={{ fill: '#94a3b8', fontSize: 12 }}
+            tick={{ fill: '#737373', fontSize: 11, fontFamily: 'monospace' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: '#94a3b8', fontSize: 12 }}
+            tick={{ fill: '#737373', fontSize: 11, fontFamily: 'monospace' }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(value) => `₹${value}`}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#ffffff',
+              backgroundColor: '#0a0a0a',
               border: 'none',
-              borderRadius: '12px',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              padding: '12px'
+              borderRadius: '8px',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+              padding: '8px 12px',
+              fontFamily: 'monospace',
+              fontSize: '11px',
+              color: '#ffffff',
             }}
-            cursor={{ fill: '#f8fafc' }}
-            formatter={(value: any) => [`₹${(Number(value) || 0).toLocaleString()}`, 'Expenses']}
+            cursor={{ fill: 'rgba(0, 0, 0, 0.03)' }}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            formatter={(value: any) => [
+              `₹${(Number(value) || 0).toLocaleString()}`,
+              'Expenses',
+            ]}
           />
           <Bar
             dataKey="expenses"
-            fill="url(#expenseGradient)"
+            fill="url(#monochromeBarGradient)"
             name="Expenses"
-            radius={[6, 6, 0, 0]}
-            barSize={data.length > 10 ? undefined : 45}
+            radius={[4, 4, 0, 0]}
+            barSize={data.length > 10 ? undefined : 36}
           />
         </BarChart>
       </ResponsiveContainer>

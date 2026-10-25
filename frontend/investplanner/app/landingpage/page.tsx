@@ -1,17 +1,45 @@
-import Hero from "./hero";
-import LandingImage from "./image";
+'use client';
+
+import Navbar from './Navbar';
+import Hero from './hero';
+import TerminalPreview from './TerminalPreview';
+import Logos from './Logos';
+import Pillars from './Pillars';
+import Testimonial from './Testimonial';
+import CtaSection from './CtaSection';
+import Footer from './Footer';
+
 export default function LandingPage() {
   return (
-    <div className="bg-gray-200 h-screen flex flex-col md:flex-row items-center justify-start md:justify-center p-6 md:p-0 overflow-hidden"
+    <div className="min-h-screen bg-white text-neutral-950 flex flex-col selection:bg-neutral-900 selection:text-white">
+      {/* Top Header */}
+      <Navbar />
 
-      style={{
-        backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.22) 1px, transparent 1px)",
-        backgroundSize: "22px 22px",
-      }}>
-      <Hero />
-      <div className="mt-80 ml-125 md:mt-132 md:ml-0 w-[1200px] flex justify-center">
-        <LandingImage />
-      </div>
+      {/* Main Page Flow */}
+      <main className="flex-1">
+        {/* Hero Section */}
+        <Hero />
+
+        {/* Interactive Terminal Mockup */}
+        <div className="px-4">
+          <TerminalPreview />
+        </div>
+
+        {/* Social Proof Logos */}
+        <Logos />
+
+        {/* Simplicity First - 3 Feature Pillars */}
+        <Pillars />
+
+        {/* Customer Testimonial Quote */}
+        <Testimonial />
+
+        {/* Experience Effortless Finance - Bottom CTA Card */}
+        <CtaSection />
+      </main>
+
+      {/* Minimal Footer */}
+      <Footer />
     </div>
-  )
+  );
 }

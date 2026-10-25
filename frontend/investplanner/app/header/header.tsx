@@ -1,61 +1,67 @@
-'use client'
-import { useState } from "react";
-import AddTransactionModal from "../modals/addTransaction";
-import { User, Download } from 'lucide-react';
-import { usePwaInstall } from "../hooks/usePwaInstall";
+'use client';
 
-export default function Header(){
-      const [isModalOpen, setIsModalOpen] = useState(false);
-      const { isInstallable, isInstalled, triggerInstallPrompt } = usePwaInstall();
+import { useState } from 'react';
+import Link from 'next/link';
+import AddTransactionModal from '../modals/addTransaction';
+import { User, Download, Plus } from 'lucide-react';
+import { usePwaInstall } from '../hooks/usePwaInstall';
 
-        const handleTransactionAdded = () => {
-        console.log('✅ Transaction added successfully');
-        // Refresh transactions list or update state here
-        // You can fetch new transactions from API if needed
+export default function Header() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isInstallable, isInstalled, triggerInstallPrompt } = usePwaInstall();
+
+  const handleTransactionAdded = () => {
+    console.log('✅ Transaction added successfully');
   };
-    return (
-        <div className="flex items-center justify-between px-4 py-3 border-b-2 bg-white border-gray-200 shadow-sm sticky top-0 z-50">
-            {/* Logo */}
-            <h1 className="text-black font-bold text-2xl md:text-3xl whitespace-nowrap">
-                Spend<span className="text-yellow-400">ly</span>
-            </h1>
 
-            <div className="flex items-center gap-3 md:gap-4">
-                {/* Install App Quick Action (only visible if installable) */}
-                {isInstallable && !isInstalled && (
-                    <button
-                        onClick={triggerInstallPrompt}
-                        className="flex items-center gap-1.5 border-2 border-yellow-400 bg-yellow-50 hover:bg-yellow-100 text-black rounded px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base font-medium transition-colors cursor-pointer"
-                        aria-label="Install Spendly Application"
-                    >
-                        <Download size={16} className="text-yellow-600" />
-                        <span className="hidden sm:inline">Install App</span>
-                        <span className="sm:hidden">Install</span>
-                    </button>
-                )}
-
-                {/* Add Transaction Button */}
-                <div className='border-2 border-gray-300 rounded px-3 py-1.5 md:px-4 md:py-2 cursor-pointer hover:bg-gray-50 transition-colors'>
-                    <button 
-                        onClick={() => setIsModalOpen(true)} 
-                        className="cursor-pointer text-black text-sm md:text-base font-medium whitespace-nowrap"
-                    >
-                        <span className="hidden sm:inline">Add Transaction</span>
-                        <span className="sm:hidden">+ Add Transaction</span>
-                    </button>
-                </div>
-
-                {/* User Profile Icon */}
-                <div className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition shrink-0">
-                    <User size={20} />
-                </div>
-            </div>
-
-            <AddTransactionModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onTransactionAdded={handleTransactionAdded}
-            />
+  return (
+    <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white/90 backdrop-blur-md border-b border-neutral-200/80 sticky top-0 z-50">
+      {/* Brand Logo */}
+      <Link href="/Dashboard" className="flex items-center gap-2.5 group">
+        <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs tracking-tighter shadow-sm group-hover:scale-105 transition-transform">
+          <span>IP</span>
         </div>
-    )
+        <span className="font-semibold text-sm sm:text-base tracking-tight text-neutral-950">
+          Invest Planner
+        </span>
+      </Link>
+
+      {/* Right Controls */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Install App Quick Action */}
+        {isInstallable && !isInstalled && (
+          <button
+            onClick={triggerInstallPrompt}
+            className="flex items-center gap-1.5 border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 text-neutral-800 rounded-lg px-3 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95"
+            aria-label="Install Invest Planner Application"
+          >
+            <Download size={14} className="text-neutral-600" />
+            <span className="hidden sm:inline">Install App</span>
+            <span className="sm:hidden">Install</span>
+          </button>
+        )}
+
+        {/* Add Transaction Button */}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white rounded-lg px-3.5 py-1.5 text-xs font-medium transition cursor-pointer shadow-sm active:scale-95"
+        >
+          <Plus size={14} />
+          <span className="hidden sm:inline">Add Transaction</span>
+          <span className="sm:hidden">Add</span>
+        </button>
+
+        {/* User Profile Icon */}
+        <div className="w-8 h-8 rounded-full border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 flex items-center justify-center cursor-pointer transition text-neutral-700 active:scale-95">
+          <User size={16} />
+        </div>
+      </div>
+
+      <AddTransactionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onTransactionAdded={handleTransactionAdded}
+      />
+    </header>
+  );
 }

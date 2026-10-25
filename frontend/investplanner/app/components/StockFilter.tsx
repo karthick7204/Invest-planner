@@ -1,4 +1,5 @@
-"use client"
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Filter, RotateCcw, IndianRupee } from 'lucide-react';
 
@@ -10,7 +11,6 @@ export function StockFilter({ onFilterChange }: StockFilterProps) {
   const [min, setMin] = useState<number | ''>('');
   const [max, setMax] = useState<number | ''>('');
 
-  // Auto apply debounced
   useEffect(() => {
     const handler = setTimeout(() => {
       onFilterChange(Number(min) || 0, Number(max) || Infinity);
@@ -31,58 +31,57 @@ export function StockFilter({ onFilterChange }: StockFilterProps) {
 
   return (
     <div className="mb-6 w-full">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md gap-4">
-        
-        <div className="flex items-center gap-2 text-indigo-600">
-          <Filter size={20} className="stroke-[2.2]" />
-          <span className="font-bold text-sm tracking-wide uppercase">Filter Range</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white rounded-2xl border border-neutral-200/90 shadow-sm gap-4">
+        <div className="flex items-center gap-2 text-neutral-900">
+          <Filter size={16} />
+          <span className="font-mono text-xs font-semibold uppercase tracking-wider">
+            Price Range Filter
+          </span>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
-              <IndianRupee size={16} />
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-neutral-400">
+              <IndianRupee size={13} />
             </div>
-            <input 
-              type="number" 
+            <input
+              type="number"
               min="0"
-              value={min} 
+              value={min}
               onKeyDown={preventInvalidChars}
-              onChange={(e) => setMin(e.target.value === '' ? '' : Number(e.target.value))} 
-              className="pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm w-32 md:w-40 outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 text-gray-800 transition-all font-medium placeholder:font-normal placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              onChange={(e) => setMin(e.target.value === '' ? '' : Number(e.target.value))}
+              className="pl-8 pr-3 py-2 bg-neutral-50/70 border border-neutral-200 rounded-lg text-xs w-28 sm:w-32 outline-none focus:border-neutral-900 focus:bg-white text-neutral-900 font-mono transition"
               placeholder="Min Price"
             />
           </div>
-          
-          <span className="text-gray-300 font-medium">—</span>
 
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
-              <IndianRupee size={16} />
+          <span className="text-neutral-300 font-mono text-xs">—</span>
+
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-neutral-400">
+              <IndianRupee size={13} />
             </div>
-            <input 
-              type="number" 
+            <input
+              type="number"
               min="0"
-              value={max} 
+              value={max}
               onKeyDown={preventInvalidChars}
-              onChange={(e) => setMax(e.target.value === '' ? '' : Number(e.target.value))} 
-              className="pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm w-32 md:w-40 outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 text-gray-800 transition-all font-medium placeholder:font-normal placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              onChange={(e) => setMax(e.target.value === '' ? '' : Number(e.target.value))}
+              className="pl-8 pr-3 py-2 bg-neutral-50/70 border border-neutral-200 rounded-lg text-xs w-28 sm:w-32 outline-none focus:border-neutral-900 focus:bg-white text-neutral-900 font-mono transition"
               placeholder="Max Price"
             />
           </div>
-          
-          <div className="flex justify-end w-full sm:w-auto h-10">
-            {(min !== '' || max !== '') && (
-              <button 
-                onClick={handleReset}
-                className="flex items-center justify-center gap-2 px-4 py-2 h-full text-sm font-medium text-gray-500 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors ml-0 sm:ml-2"
-                title="Reset Filters"
-              >
-                <RotateCcw size={16} />
-                <span className="hidden sm:inline">Reset</span>
-              </button>
-            )}
-          </div>
+
+          {(min !== '' || max !== '') && (
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono text-neutral-500 hover:text-black hover:bg-neutral-100 rounded-lg transition cursor-pointer"
+              title="Reset Filters"
+            >
+              <RotateCcw size={13} />
+              <span>Reset</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

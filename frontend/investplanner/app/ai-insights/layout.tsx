@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
-import Header from "../header/header";
-import Sidebar from "../sidebar/sidebar";
+import type { Metadata } from 'next';
+import Header from '../header/header';
+import Sidebar from '../sidebar/sidebar';
 
 export const metadata: Metadata = {
-  title: "AI Insights | Spendly",
-  description: "Advanced AI financial insights for your wealth growth",
+  title: 'AI Insights | Invest Planner',
+  description: 'Autonomous wealth intelligence and capital audit',
 };
 
 export default function RootLayout({
@@ -13,17 +13,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex flex-col h-screen w-full lg:pl-64 bg-[#f6f7f6]">
+    <div className="min-h-screen bg-[#fafafa] text-neutral-950 antialiased selection:bg-neutral-900 selection:text-white">
       <Sidebar />
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-zinc-800">
-        <Header />
-      </div>
+      <div className="flex flex-col min-h-screen w-full lg:pl-64">
+        {/* Fixed Header */}
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <Header />
+        </div>
 
-      {/* Scrollable Content */}
-      <main className="mt-12 flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 font-poppins">
-        {children}
-      </main>
+        {/* Scrollable Content */}
+        <main className="mt-14 flex-1 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
