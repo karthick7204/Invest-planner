@@ -142,7 +142,7 @@ export default function Reports() {
 
     const content = `
 =====================================================
-INVEST PLANNER - FINANCIAL AUDIT REPORT
+SPENDLY - FINANCIAL AUDIT REPORT
 Engine: Salt & Pepper Autonomous Wealth Engine
 Date: ${dateFormatted}
 =====================================================

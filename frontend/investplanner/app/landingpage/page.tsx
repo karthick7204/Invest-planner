@@ -1,45 +1,52 @@
 'use client';
 
+import { useState } from 'react';
 import Navbar from './Navbar';
 import Hero from './hero';
 import TerminalPreview from './TerminalPreview';
-import Logos from './Logos';
 import Pillars from './Pillars';
-import Testimonial from './Testimonial';
 import CtaSection from './CtaSection';
 import Footer from './Footer';
+import InstallPromptModal from '../components/InstallPromptModal';
 
 export default function LandingPage() {
+  const [isInstallOpen, setIsInstallOpen] = useState(false);
+
+  const handleOpenInstall = () => {
+    setIsInstallOpen(true);
+  };
+
+  const handleCloseInstall = () => {
+    setIsInstallOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-white text-neutral-950 flex flex-col selection:bg-neutral-900 selection:text-white">
-      {/* Top Header */}
-      <Navbar />
+      {/* Top Header with permanent Download button */}
+      <Navbar onOpenInstall={handleOpenInstall} />
 
       {/* Main Page Flow */}
       <main className="flex-1">
-        {/* Hero Section */}
-        <Hero />
+        {/* Hero Section with permanent Download App CTA */}
+        <Hero onOpenInstall={handleOpenInstall} />
 
         {/* Interactive Terminal Mockup */}
         <div className="px-4">
           <TerminalPreview />
         </div>
 
-        {/* Social Proof Logos */}
-        <Logos />
-
         {/* Simplicity First - 3 Feature Pillars */}
         <Pillars />
 
-        {/* Customer Testimonial Quote */}
-        <Testimonial />
-
-        {/* Experience Effortless Finance - Bottom CTA Card */}
-        <CtaSection />
+        {/* Experience Effortless Finance - Bottom CTA Card with integrated Install row */}
+        <CtaSection onOpenInstall={handleOpenInstall} />
       </main>
 
       {/* Minimal Footer */}
       <Footer />
+
+      {/* Dedicated Install Modal for the Landing Page */}
+      <InstallPromptModal isOpen={isInstallOpen} onClose={handleCloseInstall} />
     </div>
   );
 }

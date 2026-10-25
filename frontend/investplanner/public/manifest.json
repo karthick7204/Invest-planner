@@ -1,13 +1,13 @@
 {
-  "name": "Spendly - Invest & Finance Planner",
+  "name": "Spendly — Intelligent Finance & Expense Tracker",
   "short_name": "Spendly",
-  "description": "Smart investment planning, expense tracking, and portfolio analytics.",
+  "description": "Smart finance tracking, expense logging, and wealth analytics.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#facc15",
+  "theme_color": "#0a0a0a",
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {

@@ -3,7 +3,7 @@ import Header from '@/app/header/header';
 import Sidebar from '../sidebar/sidebar';
 
 export const metadata: Metadata = {
-  title: 'Stock Suggestions | Invest Planner',
+  title: 'Stock Suggestions | Spendly',
   description: 'Capital recommendations and quantitative market signals',
 };
 

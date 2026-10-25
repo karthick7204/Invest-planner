@@ -66,7 +66,7 @@ export default function SignupCard() {
       {/* Header */}
       <div className="mb-7 flex flex-col items-center text-center">
         <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs tracking-tighter shadow-sm mb-4">
-          <span>IP</span>
+          <span>S</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-950">
           Create Account

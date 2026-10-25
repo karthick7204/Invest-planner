@@ -7,12 +7,12 @@ export default function TerminalPreview() {
 
   const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
   const chartPoints = [
-    { month: 'JAN', value: '$42,100', x: 20, y: 110 },
-    { month: 'FEB', value: '$49,300', x: 80, y: 100 },
-    { month: 'MAR', value: '$56,800', x: 140, y: 88 },
-    { month: 'APR', value: '$65,400', x: 200, y: 72 },
-    { month: 'MAY', value: '$74,900', x: 260, y: 55 },
-    { month: 'JUN', value: '$84,290', x: 320, y: 35 },
+    { month: 'JAN', value: '₹48,200', x: 20, y: 110 },
+    { month: 'FEB', value: '₹56,400', x: 80, y: 100 },
+    { month: 'MAR', value: '₹64,800', x: 140, y: 88 },
+    { month: 'APR', value: '₹72,300', x: 200, y: 72 },
+    { month: 'MAY', value: '₹78,900', x: 260, y: 55 },
+    { month: 'JUN', value: '₹82,450', x: 320, y: 35 },
   ];
 
   return (
@@ -28,7 +28,7 @@ export default function TerminalPreview() {
               <span className="w-2.5 h-2.5 rounded-full bg-neutral-300"></span>
             </div>
             <span className="font-mono text-[11px] text-neutral-400 ml-2 tracking-tight">
-              invest.terminal / live-active
+              spendly.terminal / live-active
             </span>
           </div>
 
@@ -45,40 +45,41 @@ export default function TerminalPreview() {
             {/* Metric 1 */}
             <div>
               <p className="font-mono text-[10px] tracking-wider uppercase text-neutral-400 font-medium">
-                Total Net Balance
+                Total Monthly Surplus
               </p>
-              <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-950 mt-1">
-                $84,290.40
+              <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-950 mt-1 font-mono">
+                ₹82,450.00
               </h3>
               <p className="text-xs text-neutral-500 mt-1 flex items-center gap-1">
-                <span className="text-neutral-900 font-medium">+18.4%</span>
-                <span>compared to target</span>
+                <span className="text-neutral-900 font-medium">+24.8%</span>
+                <span>savings velocity</span>
               </p>
             </div>
 
             {/* Metric 2 */}
             <div>
               <p className="font-mono text-[10px] tracking-wider uppercase text-neutral-400 font-medium">
-                Monthly Burn Velocity
+                Monthly Expenses
               </p>
-              <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-950 mt-1">
-                $4,120.00
+              <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-950 mt-1 font-mono">
+                ₹42,550.00
               </h3>
               <p className="text-xs text-neutral-500 mt-1">
-                <span className="text-neutral-900 font-medium">12.5%</span> under strict ceiling
+                <span className="text-neutral-900 font-medium">₹22,450</span> under ₹65,000 cap
               </p>
             </div>
 
             {/* Metric 3 */}
             <div>
               <p className="font-mono text-[10px] tracking-wider uppercase text-neutral-400 font-medium">
-                Runway Trajectory
+                Equity Portfolio &amp; Stocks
               </p>
-              <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-950 mt-1">
-                28.4 mo
+              <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-950 mt-1 font-mono">
+                ₹3,18,500.00
               </h3>
-              <p className="text-xs text-neutral-500 mt-1">
-                Algorithmic forecast (95% CI)
+              <p className="text-xs text-neutral-500 mt-1 flex items-center gap-1">
+                <span className="text-neutral-900 font-medium">+14.2%</span>
+                <span>return • NSE Nifty</span>
               </p>
             </div>
           </div>
@@ -89,7 +90,7 @@ export default function TerminalPreview() {
             <div className="lg:col-span-7 flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-xs font-semibold text-neutral-900 tracking-tight">
-                  Inflow vs. Outflow Trajectory
+                  Income vs. Expense Trajectory
                 </h4>
                 <span className="font-mono text-[11px] text-neutral-400">
                   H1 2026
@@ -121,7 +122,7 @@ export default function TerminalPreview() {
                     fill="url(#curveGradient)"
                   />
 
-                  {/* Baseline / Outflow projection (dotted) */}
+                  {/* Baseline / Budget Ceiling limit line (dotted) */}
                   <path
                     d="M 20 115 C 80 112, 160 108, 240 102 C 280 99, 320 95, 320 95"
                     fill="none"
@@ -130,7 +131,7 @@ export default function TerminalPreview() {
                     strokeDasharray="3 3"
                   />
 
-                  {/* Primary Trajectory Curve */}
+                  {/* Primary Surplus Trajectory Curve */}
                   <path
                     d="M 20 110 C 70 105, 120 95, 170 80 C 220 65, 270 45, 320 35"
                     fill="none"
@@ -139,7 +140,7 @@ export default function TerminalPreview() {
                     strokeLinecap="round"
                   />
 
-                  {/* Interactive / Static Data points */}
+                  {/* Interactive Data points */}
                   {chartPoints.map((pt, idx) => (
                     <g key={idx}>
                       <circle
@@ -181,7 +182,7 @@ export default function TerminalPreview() {
             {/* Right: Extracted Events Table */}
             <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-neutral-100 lg:pl-8 pt-6 lg:pt-0">
               <div className="flex items-center justify-between pb-3 border-b border-neutral-100 font-mono text-[10px] uppercase tracking-wider text-neutral-400">
-                <span>Extracted Events</span>
+                <span>Recent Activity</span>
                 <span>Status</span>
               </div>
 
@@ -190,19 +191,19 @@ export default function TerminalPreview() {
                 <div className="py-3.5 flex items-start justify-between gap-2 group">
                   <div>
                     <h5 className="text-xs font-medium text-neutral-900 group-hover:text-black">
-                      AWS Cloud Hosting
+                      Tech Salary Credit
                     </h5>
                     <p className="font-mono text-[10px] text-neutral-400 mt-0.5">
-                      OCR • Category: 6021
+                      Direct Deposit • Inflow
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xs font-medium text-neutral-900">
-                      -$1,894.20
+                    <span className="font-mono text-xs font-semibold text-neutral-900">
+                      +₹1,25,000.00
                     </span>
                     <div className="mt-1">
-                      <span className="inline-block font-mono text-[9px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">
-                        Verified
+                      <span className="inline-block font-mono text-[9px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700">
+                        Credited
                       </span>
                     </div>
                   </div>
@@ -212,19 +213,19 @@ export default function TerminalPreview() {
                 <div className="py-3.5 flex items-start justify-between gap-2 group">
                   <div>
                     <h5 className="text-xs font-medium text-neutral-900 group-hover:text-black">
-                      Client Retainer Inflow
+                      Nature&apos;s Basket &amp; Groceries
                     </h5>
                     <p className="font-mono text-[10px] text-neutral-400 mt-0.5">
-                      Stripe API • ARR
+                      Food &amp; Dining • Debit Card
                     </p>
                   </div>
                   <div className="text-right">
                     <span className="font-mono text-xs font-medium text-neutral-900">
-                      +$18,450.00
+                      -₹4,850.00
                     </span>
                     <div className="mt-1">
-                      <span className="inline-block font-mono text-[9px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">
-                        Verified
+                      <span className="inline-block font-mono text-[9px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700">
+                        Completed
                       </span>
                     </div>
                   </div>
@@ -234,15 +235,37 @@ export default function TerminalPreview() {
                 <div className="py-3.5 flex items-start justify-between gap-2 group">
                   <div>
                     <h5 className="text-xs font-medium text-neutral-900 group-hover:text-black">
-                      SaaS Optimization Alert
+                      Tata Motors Ltd (NSE)
                     </h5>
                     <p className="font-mono text-[10px] text-neutral-400 mt-0.5">
-                      Aura Copilot
+                      Equity Stock Allocation
                     </p>
                   </div>
                   <div className="text-right">
                     <span className="font-mono text-xs font-medium text-neutral-900">
-                      +$240.00/mo
+                      -₹15,000.00
+                    </span>
+                    <div className="mt-1">
+                      <span className="inline-block font-mono text-[9px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700">
+                        Invested
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event 4: Gemini AI Signal */}
+                <div className="py-3.5 flex items-start justify-between gap-2 group">
+                  <div>
+                    <h5 className="text-xs font-medium text-neutral-900 group-hover:text-black">
+                      Gemini AI Surplus Insight
+                    </h5>
+                    <p className="font-mono text-[10px] text-neutral-400 mt-0.5">
+                      Surplus ready for SIP
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono text-xs font-medium text-neutral-900">
+                      +₹40,000.00
                     </span>
                     <div className="mt-1">
                       <span className="inline-block font-mono text-[9px] px-2 py-0.5 rounded-full bg-black text-white">

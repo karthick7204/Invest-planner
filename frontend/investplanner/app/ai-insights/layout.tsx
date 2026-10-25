@@ -3,7 +3,7 @@ import Header from '../header/header';
 import Sidebar from '../sidebar/sidebar';
 
 export const metadata: Metadata = {
-  title: 'AI Insights | Invest Planner',
+  title: 'AI Insights | Spendly',
   description: 'Autonomous wealth intelligence and capital audit',
 };
 

@@ -3,7 +3,7 @@ import Header from '@/app/header/header';
 import Sidebar from '../sidebar/sidebar';
 
 export const metadata: Metadata = {
-  title: 'Dashboard | Invest Planner',
+  title: 'Dashboard | Spendly',
   description: 'Manage your finances and capital with monochrome precision',
 };
 

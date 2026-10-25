@@ -19,10 +19,10 @@ export default function Header() {
       {/* Brand Logo */}
       <Link href="/Dashboard" className="flex items-center gap-2.5 group">
         <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs tracking-tighter shadow-sm group-hover:scale-105 transition-transform">
-          <span>IP</span>
+          <span>S</span>
         </div>
         <span className="font-semibold text-sm sm:text-base tracking-tight text-neutral-950">
-          Invest Planner
+          Spendly
         </span>
       </Link>
 
@@ -33,7 +33,7 @@ export default function Header() {
           <button
             onClick={triggerInstallPrompt}
             className="flex items-center gap-1.5 border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 text-neutral-800 rounded-lg px-3 py-1.5 text-xs font-medium transition cursor-pointer active:scale-95"
-            aria-label="Install Invest Planner Application"
+            aria-label="Install Spendly Application"
           >
             <Download size={14} className="text-neutral-600" />
             <span className="hidden sm:inline">Install App</span>

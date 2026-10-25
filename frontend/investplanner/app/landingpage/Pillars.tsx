@@ -32,18 +32,18 @@ export default function Pillars() {
             </div>
 
             <h3 className="text-base font-semibold text-neutral-900 tracking-tight">
-              Automated Bill Extraction
+              Expense &amp; Inflow Tracking
             </h3>
             <p className="text-xs text-neutral-500 mt-2.5 leading-relaxed">
-              Instant sub-second optical parsing converts paper receipts and PDF invoices into categorized ledger deductions automatically.
+              Instant logging and automatic categorization across Food, Dining, Travel, Utilities, and Salary inflows keep your finances transparent.
             </p>
           </div>
 
           {/* Mini Preview Box */}
           <div className="mt-8 pt-4 border-t border-neutral-100">
             <div className="bg-neutral-50 border border-neutral-200/80 rounded-lg px-3.5 py-2.5 flex items-center justify-between font-mono text-[11px]">
-              <span className="text-neutral-700 font-medium">INV-80219</span>
-              <span className="text-neutral-500">100% Tax Tagged</span>
+              <span className="text-neutral-700 font-medium">Food &amp; Groceries</span>
+              <span className="text-neutral-500">₹4,850 Verified</span>
             </div>
           </div>
         </div>
@@ -61,10 +61,10 @@ export default function Pillars() {
             </div>
 
             <h3 className="text-base font-semibold text-neutral-900 tracking-tight">
-              Cashflow Intelligence
+              Budget Guardrails &amp; Surplus
             </h3>
             <p className="text-xs text-neutral-500 mt-2.5 leading-relaxed">
-              Live burn-rate monitoring and runway projection algorithms calculate liquidity buffer timelines without requiring manual recalculation.
+              Real-time monthly spending caps and surplus velocity track your spending ceiling so you always maintain a healthy cash reserve.
             </p>
           </div>
 
@@ -72,8 +72,8 @@ export default function Pillars() {
           <div className="mt-8 pt-4 border-t border-neutral-100">
             <div className="bg-neutral-50 border border-neutral-200/80 rounded-lg p-3 font-mono text-[11px]">
               <div className="flex items-center justify-between text-neutral-700">
-                <span>Runway Horizon</span>
-                <span className="font-medium text-neutral-900">+4.2 Months Added</span>
+                <span>Monthly Surplus</span>
+                <span className="font-medium text-neutral-900">₹82,450 Retained</span>
               </div>
               {/* Segmented Runway Bar */}
               <div className="flex items-center gap-1.5 mt-2">
@@ -98,10 +98,10 @@ export default function Pillars() {
             </div>
 
             <h3 className="text-base font-semibold text-neutral-900 tracking-tight">
-              AI Financial Copilot
+              Gemini AI &amp; Stock Intelligence
             </h3>
             <p className="text-xs text-neutral-500 mt-2.5 leading-relaxed">
-              Query your financial ledger in plain human dialogue to uncover hidden SaaS seat redundancies and model capital scenarios.
+              Intelligent financial advisory analyzes excess surplus and curates high-conviction Indian equity allocations with real-time NSE data.
             </p>
           </div>
 
@@ -109,10 +109,10 @@ export default function Pillars() {
           <div className="mt-8 pt-4 border-t border-neutral-100">
             <div className="bg-neutral-50 border border-neutral-200/80 rounded-lg p-3 font-mono text-[11px]">
               <div className="text-neutral-500 truncate">
-                &ldquo;Find redundant subscriptions&rdquo;
+                &ldquo;Allocate monthly surplus&rdquo;
               </div>
               <div className="text-neutral-900 font-medium mt-1 truncate">
-                3 Licenses identified (-$240)
+                Tata Motors (NSE) • ₹15,000 Allocation
               </div>
             </div>
           </div>

@@ -1,26 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Fredoka } from "next/font/google";
 import Script from "next/script";
 import PwaRegister from "./components/PwaRegister";
-import InstallPromptModal from "./components/InstallPromptModal";
-
-const fredoka = Fredoka({
-  variable: "--font-fredoka",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 export const viewport: Viewport = {
-  themeColor: "#facc15",
+  themeColor: "#0a0a0a",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
-  title: "Spendly - Invest Planner",
-  description: "Smart investment planning, expense tracking, and portfolio analytics.",
+  title: "Spendly — Intelligent Finance & Expense Tracker",
+  description: "Autonomous wealth intelligence, instant bill extraction, and capital synthesis designed with monochrome precision.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -62,9 +54,8 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={fredoka.variable}>
+      <body>
         <PwaRegister />
-        <InstallPromptModal />
         {children}
       </body>
     </html>

@@ -3,7 +3,7 @@ import Header from '@/app/header/header';
 import Sidebar from '../sidebar/sidebar';
 
 export const metadata: Metadata = {
-  title: 'Reports | Invest Planner',
+  title: 'Reports | Spendly',
   description: 'Financial reports and portfolio audits with monochrome precision',
 };
 

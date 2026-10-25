@@ -1,136 +1,194 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePwaInstall } from '../hooks/usePwaInstall';
-import { Download, X, Share, PlusSquare } from 'lucide-react';
+import { Download, X, Share, PlusSquare, Monitor, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 
-export default function InstallPromptModal() {
-  const { isInstallable, isInstalled, isIOS, triggerInstallPrompt } = usePwaInstall();
-  const [isDismissed, setIsDismissed] = useState(false);
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+interface InstallPromptModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
+export default function InstallPromptModal({ isOpen, onClose }: InstallPromptModalProps) {
+  const { isInstalled, isIOS, triggerInstallPrompt } = usePwaInstall();
+  const [installStatus, setInstallStatus] = useState<'idle' | 'installing' | 'installed' | 'manual'>('idle');
+
+  // Handle escape key and lock body scroll
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('spendly_pwa_dismissed');
-      sessionStorage.removeItem('spendly_pwa_dismissed');
-    }
-  }, []);
+    if (!isOpen) return;
 
-  const showPrompt = isInstallable && !isInstalled && !isDismissed;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
 
-  if (!showPrompt) return null;
+    document.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
-  const handleInstallClick = async () => {
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handlePwaInstall = async () => {
     if (isIOS) {
-      setShowIOSInstructions(true);
+      setInstallStatus('manual');
       return;
     }
 
-    const outcome = await triggerInstallPrompt();
-    if (outcome === 'accepted') {
-      setIsDismissed(true);
+    setInstallStatus('installing');
+    try {
+      const outcome = await triggerInstallPrompt();
+      if (outcome === 'accepted') {
+        setInstallStatus('installed');
+        setTimeout(() => {
+          onClose();
+        }, 1500);
+      } else {
+        setInstallStatus('manual');
+      }
+    } catch {
+      setInstallStatus('manual');
     }
   };
 
-  const handleDismiss = () => {
-    setIsDismissed(true);
-  };
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+      {/* Dimmed backdrop */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-  return (
-    <>
-      <aside
-        aria-label="Install Invest Planner App"
-        className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-96 bg-white border border-neutral-200/90 rounded-2xl shadow-2xl p-4 z-50 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300"
+      {/* Modal Dialog Card */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pwa-install-title"
+        className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-neutral-200/90 pointer-events-auto flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between">
+        {/* Header */}
+        <div className="p-6 pb-4 flex justify-between items-start border-b border-neutral-100 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs tracking-tight shadow-sm shrink-0">
-              IP
+              S
             </div>
             <div>
-              <h3 className="font-semibold text-neutral-900 text-sm leading-tight">
-                Install Invest Planner
-              </h3>
-              <p className="text-neutral-500 text-xs mt-0.5">
-                Faster launch, offline cache &amp; desktop mode.
+              <h2 id="pwa-install-title" className="text-base font-semibold text-neutral-950 tracking-tight">
+                Install Spendly PWA
+              </h2>
+              <p className="font-mono text-xs text-neutral-400 mt-0.5">
+                Progressive Web Application
               </p>
             </div>
           </div>
           <button
-            onClick={handleDismiss}
-            aria-label="Close install prompt"
-            className="text-neutral-400 hover:text-neutral-900 p-1 rounded-lg transition cursor-pointer"
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition cursor-pointer"
+            aria-label="Close modal"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={handleDismiss}
-            className="flex-1 py-1.5 px-3 text-xs font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition cursor-pointer"
-          >
-            Not now
-          </button>
-          <button
-            onClick={handleInstallClick}
-            className="flex-1 py-1.5 px-3 text-xs font-medium text-white bg-black hover:bg-neutral-800 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
-          >
-            <Download size={13} />
-            Install
-          </button>
-        </div>
-      </aside>
-
-      {showIOSInstructions && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in"
-        >
-          <div className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl flex flex-col items-center text-center border border-neutral-200">
-            <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs mb-3">
-              IP
+        {/* Content Body */}
+        <div className="overflow-y-auto p-6 space-y-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {/* Feature Highlights */}
+          <div className="grid grid-cols-1 gap-2.5">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50/70 border border-neutral-200/80">
+              <div className="w-8 h-8 rounded-lg bg-neutral-200/60 flex items-center justify-center text-neutral-800 shrink-0">
+                <Zap size={15} />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-neutral-900">Instant Launch</p>
+                <p className="text-[11px] text-neutral-500">Opens directly from your system Dock or Home Screen</p>
+              </div>
             </div>
-            <h4 className="text-base font-bold text-neutral-950">Install on iOS</h4>
-            <p className="text-xs text-neutral-500 mt-1 mb-4">
-              Add Invest Planner to your home screen via Safari:
-            </p>
 
-            <ol className="text-left text-xs text-neutral-700 space-y-2.5 w-full bg-neutral-50 p-4 rounded-xl border border-neutral-200/80 font-mono">
-              <li className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full bg-neutral-200 text-black flex items-center justify-center font-bold text-[9px] shrink-0">
-                  1
-                </span>
-                <span>
-                  Tap <strong className="inline-flex items-center gap-1">Share <Share size={11} /></strong>
-                </span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full bg-neutral-200 text-black flex items-center justify-center font-bold text-[9px] shrink-0">
-                  2
-                </span>
-                <span>
-                  Tap <strong className="inline-flex items-center gap-1">Add to Home Screen <PlusSquare size={11} /></strong>
-                </span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full bg-neutral-200 text-black flex items-center justify-center font-bold text-[9px] shrink-0">
-                  3
-                </span>
-                <span>Tap <strong>Add</strong> in the top-right corner.</span>
-              </li>
-            </ol>
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50/70 border border-neutral-200/80">
+              <div className="w-8 h-8 rounded-lg bg-neutral-200/60 flex items-center justify-center text-neutral-800 shrink-0">
+                <Monitor size={15} />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-neutral-900">Dedicated Window</p>
+                <p className="text-[11px] text-neutral-500">Distraction-free standalone app mode without browser tabs</p>
+              </div>
+            </div>
 
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50/70 border border-neutral-200/80">
+              <div className="w-8 h-8 rounded-lg bg-neutral-200/60 flex items-center justify-center text-neutral-800 shrink-0">
+                <ShieldCheck size={15} />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-neutral-900">Offline Ready</p>
+                <p className="text-[11px] text-neutral-500">Fast local caching and encrypted session storage</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Installed Confirmation State */}
+          {installStatus === 'installed' || isInstalled ? (
+            <div className="p-3.5 bg-neutral-50 border border-neutral-300 rounded-xl font-mono text-xs text-neutral-800 flex items-center gap-2.5">
+              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+              <span>Spendly PWA is successfully installed on your device.</span>
+            </div>
+          ) : null}
+
+          {/* PWA Download / Install Action Button */}
+          <div className="pt-2">
             <button
-              onClick={() => setShowIOSInstructions(false)}
-              className="mt-4 w-full py-2 bg-black text-white rounded-lg text-xs font-medium hover:bg-neutral-800 transition cursor-pointer"
+              type="button"
+              onClick={handlePwaInstall}
+              disabled={installStatus === 'installing'}
+              className="w-full py-2.5 px-4 bg-black hover:bg-neutral-800 disabled:opacity-50 text-white rounded-xl text-xs font-medium flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.99] cursor-pointer"
             >
-              Done
+              <Download size={14} />
+              <span>{installStatus === 'installing' ? 'Initiating PWA Download...' : 'Download & Install PWA'}</span>
             </button>
           </div>
+
+          {/* Platform Manual Guidance (shown on iOS or when browser requires manual action) */}
+          {(installStatus === 'manual' || isIOS) && (
+            <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200/90 space-y-2 text-left animate-in fade-in duration-150">
+              {isIOS ? (
+                <>
+                  <p className="text-xs font-medium text-neutral-900">Install via Safari iOS:</p>
+                  <ol className="text-[11px] text-neutral-600 space-y-1 font-mono">
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-4 h-4 rounded-full bg-neutral-200 text-black flex items-center justify-center font-bold text-[9px] shrink-0">1</span>
+                      <span>Tap <strong className="inline-flex items-center gap-0.5">Share <Share size={10} /></strong> in Safari</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-4 h-4 rounded-full bg-neutral-200 text-black flex items-center justify-center font-bold text-[9px] shrink-0">2</span>
+                      <span>Tap <strong className="inline-flex items-center gap-0.5">Add to Home Screen <PlusSquare size={10} /></strong></span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-4 h-4 rounded-full bg-neutral-200 text-black flex items-center justify-center font-bold text-[9px] shrink-0">3</span>
+                      <span>Tap <strong>Add</strong> in the top-right corner.</span>
+                    </li>
+                  </ol>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-medium text-neutral-900">Browser Installation:</p>
+                  <p className="text-[11px] text-neutral-600 font-mono">
+                    Look for the <strong>Install (⊕ or ⬇)</strong> icon in your browser URL bar at the top right, and click <strong>Install</strong>.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }
