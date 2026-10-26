@@ -142,19 +142,40 @@ export const getGraphData = async (req, res) => {
         const mode = req.query.mode || 'daily'; // 'daily' or 'category'
         const date = req.query.date || new Date().toISOString().split('T')[0];
         if (mode === 'category') {
-            // Get expenses by category for a specific day
-            const startOfDay = new Date(date);
-            startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date(date);
-            endOfDay.setHours(23, 59, 59, 999);
-            const categoryData = await transaction.aggregate([
-                {
-                    $match: {
-                        user: new mongoose.Types.ObjectId(userId),
-                        type: "expense",
-                        date: { $gte: startOfDay, $lte: endOfDay }
-                    }
-                },
+            const period = req.query.period || req.query.range || 'month';
+            let dateFilter = null;
+            if (period === 'today') {
+                const dateParam = String(req.query.date || new Date().toISOString().split('T')[0]);
+                const startOfDay = new Date(dateParam);
+                startOfDay.setHours(0, 0, 0, 0);
+                const endOfDay = new Date(dateParam);
+                endOfDay.setHours(23, 59, 59, 999);
+                dateFilter = { $gte: startOfDay, $lte: endOfDay };
+            }
+            else if (period === '30days') {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                dateFilter = { $gte: thirtyDaysAgo };
+            }
+            else if (period === 'all') {
+                dateFilter = null;
+            }
+            else {
+                // Default: current month
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+                dateFilter = { $gte: startOfMonth, $lte: endOfMonth };
+            }
+            const matchQuery = {
+                user: new mongoose.Types.ObjectId(userId),
+                type: "expense"
+            };
+            if (dateFilter) {
+                matchQuery.date = dateFilter;
+            }
+            let categoryData = await transaction.aggregate([
+                { $match: matchQuery },
                 {
                     $group: {
                         _id: { $toLower: "$category" },
@@ -163,11 +184,55 @@ export const getGraphData = async (req, res) => {
                 },
                 { $sort: { expenses: -1 } }
             ]);
-            const formattedData = categoryData.map(item => ({
-                name: item._id,
-                expenses: item.expenses
-            }));
-            return res.status(200).json({ graphData: formattedData });
+            // Fallback: If no data in chosen period and period was default 'month', fallback to all-time
+            if (categoryData.length === 0 && period === 'month') {
+                categoryData = await transaction.aggregate([
+                    {
+                        $match: {
+                            user: new mongoose.Types.ObjectId(userId),
+                            type: "expense"
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: { $toLower: "$category" },
+                            expenses: { $sum: "$amount" }
+                        }
+                    },
+                    { $sort: { expenses: -1 } }
+                ]);
+            }
+            // Additional Fallback: Check expense collection directly if transaction had 0 records
+            if (categoryData.length === 0) {
+                categoryData = await expense.aggregate([
+                    {
+                        $match: {
+                            user: new mongoose.Types.ObjectId(userId)
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: { $toLower: "$category" },
+                            expenses: { $sum: "$amount" }
+                        }
+                    },
+                    { $sort: { expenses: -1 } }
+                ]);
+            }
+            const totalExpenses = categoryData.reduce((acc, item) => acc + (Number(item.expenses) || 0), 0);
+            const formattedData = categoryData.map(item => {
+                const rawName = item._id || 'other';
+                const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+                const expenses = Number(item.expenses) || 0;
+                const percentage = totalExpenses > 0 ? Number(((expenses / totalExpenses) * 100).toFixed(1)) : 0;
+                return {
+                    name: formattedName,
+                    category: formattedName,
+                    expenses,
+                    percentage
+                };
+            });
+            return res.status(200).json({ graphData: formattedData, totalExpenses });
         }
         else {
             // Default: Get daily total expenses for the last 30 days
