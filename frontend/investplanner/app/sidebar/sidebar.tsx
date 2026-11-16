@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
+  MessageSquare,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -25,8 +26,9 @@ export default function Sidebar() {
 
   const navItems = [
     { label: 'Dashboard', path: 'Dashboard', icon: LayoutDashboard },
-    { label: 'Reports', path: 'reports', icon: FileText },
+    { label: 'AI Copilot', path: 'chat', icon: MessageSquare },
     { label: 'AI Insights', path: 'ai-insights', icon: Sparkles },
+    { label: 'Reports', path: 'reports', icon: FileText },
     { label: 'Stock Suggestions', path: 'stocksuggestions', icon: TrendingUp },
   ];
 

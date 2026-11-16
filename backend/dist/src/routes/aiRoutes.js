@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { getFinancialReport, getAIInsights, getAIInsightsNew } from "../controllers/aiController.js";
+import { getFinancialReport, getAIInsights, getAIInsightsNew, handleAIChat, } from "../controllers/aiController.js";
 import { verifyToken } from "../middleware/authentication.js";
 const router = Router();
+// Interactive AI Copilot Chat
+router.post("/chat", verifyToken, handleAIChat);
 // Full personalized AI Financial Report endpoints
 router.get("/report", verifyToken, getFinancialReport);
 router.post("/report", verifyToken, getFinancialReport);

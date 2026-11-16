@@ -18,4 +18,9 @@ export declare const getAIInsights: (req: authRequest, res: Response) => Promise
  * Strictly enforces user isolation.
  */
 export declare const getAIInsightsNew: (req: authRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+/**
+ * Controller for conversational AI Financial Copilot (POST /ai/chat).
+ * Grounded on authenticated user's real-time financial records.
+ */
+export declare const handleAIChat: (req: authRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
 //# sourceMappingURL=aiController.d.ts.map

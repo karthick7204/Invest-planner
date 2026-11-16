@@ -37,4 +37,9 @@ export declare const extractAndParseJSON: (rawText: string) => unknown;
 export declare const generateAIInsights: (userData: string) => Promise<AIInsightResponse>;
 export declare const generateAIInsightsStrict: (userData: any) => Promise<AIInsightResponseStrict>;
 export declare const generateNaturalLanguageInsight: (insightPayload: any) => Promise<string>;
+export interface ChatMessage {
+    role: "user" | "assistant";
+    content: string;
+}
+export declare const generateAIChatResponse: (userDataSummary: string, history: ChatMessage[], userMessage: string) => Promise<string>;
 //# sourceMappingURL=geminiService.d.ts.map

@@ -87,4 +87,79 @@ export const deleteusername = async (req, res) => {
         res.status(500).json({ error: "internal error" });
     }
 };
+/**
+ * Handle Google OAuth Sign In / Sign Up
+ * Verifies Google ID Token via Google tokeninfo API, finds or creates user,
+ * and signs an application JWT session.
+ */
+export const googleAuth = async (req, res) => {
+    try {
+        const { credential } = req.body;
+        if (!credential || typeof credential !== "string") {
+            return res.status(400).json({ message: "Google credential token is required" });
+        }
+        // Verify token with Google's tokeninfo endpoint
+        const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+        if (!googleRes.ok) {
+            const errData = await googleRes.json().catch(() => ({}));
+            return res.status(401).json({
+                message: "Invalid or expired Google credential token",
+                details: errData.error_description || errData.error || "Token verification failed",
+            });
+        }
+        const payload = await googleRes.json();
+        const { sub: googleId, email, name, picture } = payload;
+        if (!email) {
+            return res.status(400).json({ message: "Google account did not provide an email address" });
+        }
+        const normalizedEmail = email.toLowerCase().trim();
+        // Check if user already exists
+        let existingUser = await user.findOne({
+            $or: [{ email: normalizedEmail }, { googleId }],
+        });
+        if (existingUser) {
+            let shouldSave = false;
+            if (!existingUser.googleId) {
+                existingUser.googleId = googleId;
+                shouldSave = true;
+            }
+            if (picture && !existingUser.avatar) {
+                existingUser.avatar = picture;
+                shouldSave = true;
+            }
+            if (shouldSave) {
+                await existingUser.save();
+            }
+        }
+        else {
+            // Create new Google-authenticated user
+            existingUser = await user.create({
+                username: name || normalizedEmail.split("@")[0],
+                email: normalizedEmail,
+                googleId,
+                authProvider: "google",
+                avatar: picture || "",
+            });
+        }
+        // Sign application JWT
+        const token = jwt.sign({
+            userId: existingUser._id,
+            email: existingUser.email,
+        }, process.env.JWT_SECRET, { expiresIn: "7d" });
+        return res.status(200).json({
+            message: "Logged in successfully with Google",
+            data: {
+                userdata: existingUser,
+                token,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Google auth controller error:", error);
+        return res.status(500).json({
+            message: "Internal server error during Google authentication",
+            error: error?.message || String(error),
+        });
+    }
+};
 //# sourceMappingURL=userController.js.map

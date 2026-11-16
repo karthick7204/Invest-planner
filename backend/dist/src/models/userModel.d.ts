@@ -2,13 +2,19 @@ import mongoose from "mongoose";
 export declare const user: mongoose.Model<{
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
 } & mongoose.DefaultTimestampProps, {}, {}, {
     id: string;
 }, mongoose.Document<unknown, {}, {
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, {
@@ -16,7 +22,10 @@ export declare const user: mongoose.Model<{
 }> & Omit<{
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -28,11 +37,17 @@ export declare const user: mongoose.Model<{
 }, {
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
 } & mongoose.DefaultTimestampProps, mongoose.Document<unknown, {}, {
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
 } & mongoose.DefaultTimestampProps, {
     id: string;
 }, mongoose.ResolveSchemaOptions<{
@@ -40,7 +55,10 @@ export declare const user: mongoose.Model<{
 }>> & Omit<{
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
 } & mongoose.DefaultTimestampProps & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -53,7 +71,10 @@ export declare const user: mongoose.Model<{
     [x: string]: mongoose.SchemaDefinitionProperty<any, any, mongoose.Document<unknown, {}, {
         username: string;
         email: string;
-        password: string;
+        authProvider: "local" | "google";
+        avatar: string;
+        password?: string | null;
+        googleId?: string | null;
     } & mongoose.DefaultTimestampProps, {
         id: string;
     }, mongoose.ResolveSchemaOptions<{
@@ -61,7 +82,10 @@ export declare const user: mongoose.Model<{
     }>> & Omit<{
         username: string;
         email: string;
-        password: string;
+        authProvider: "local" | "google";
+        avatar: string;
+        password?: string | null;
+        googleId?: string | null;
     } & mongoose.DefaultTimestampProps & {
         _id: mongoose.Types.ObjectId;
     } & {
@@ -72,7 +96,10 @@ export declare const user: mongoose.Model<{
 }, {
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
@@ -82,7 +109,10 @@ export declare const user: mongoose.Model<{
 }>, {
     username: string;
     email: string;
-    password: string;
+    authProvider: "local" | "google";
+    avatar: string;
+    password?: string | null;
+    googleId?: string | null;
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {

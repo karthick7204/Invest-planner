@@ -13,8 +13,23 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, "password is required"]
-    }
+        required: function () {
+            return this.authProvider !== "google";
+        },
+    },
+    googleId: {
+        type: String,
+        sparse: true,
+    },
+    authProvider: {
+        type: String,
+        enum: ["local", "google"],
+        default: "local",
+    },
+    avatar: {
+        type: String,
+        default: "",
+    },
 }, { timestamps: true });
 export const user = mongoose.model("user", userSchema);
 //# sourceMappingURL=userModel.js.map

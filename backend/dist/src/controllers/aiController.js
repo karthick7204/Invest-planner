@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { expense } from "../models/expenseModel.js";
 import { budget } from "../models/budgetModel.js";
-import { generateAIInsightsStrict, generateNaturalLanguageInsight, } from "../service/geminiService.js";
+import { generateAIInsightsStrict, generateNaturalLanguageInsight, generateAIChatResponse, } from "../service/geminiService.js";
 import { fetchUserFinancialData } from "../service/financialReportService.js";
 /**
  * Generate a comprehensive personalized Financial Report using Gemini AI
@@ -249,6 +249,42 @@ export const getAIInsightsNew = async (req, res) => {
         console.error("❌ AI New Insights Error:", error);
         return res.status(502).json({
             message: "Failed to generate natural language AI insight from Gemini",
+            error: error.message || String(error),
+        });
+    }
+};
+/**
+ * Controller for conversational AI Financial Copilot (POST /ai/chat).
+ * Grounded on authenticated user's real-time financial records.
+ */
+export const handleAIChat = async (req, res) => {
+    const authenticatedUserId = req.userId;
+    if (!authenticatedUserId || !mongoose.Types.ObjectId.isValid(authenticatedUserId)) {
+        return res.status(401).json({ message: "Unauthorized: Invalid or missing token" });
+    }
+    const { message, history } = req.body;
+    if (!message || typeof message !== "string" || !message.trim()) {
+        return res.status(400).json({ message: "Message cannot be empty" });
+    }
+    try {
+        console.log("💬 AI Copilot Chat requested by User:", authenticatedUserId);
+        const { dataStr, metrics } = await fetchUserFinancialData(authenticatedUserId);
+        const reply = await generateAIChatResponse(dataStr, history || [], message.trim());
+        return res.status(200).json({
+            reply,
+            metrics: {
+                totalIncome: metrics.totalIncome,
+                totalExpenses: metrics.totalExpenses,
+                netSurplus: metrics.netSurplus,
+                healthScore: metrics.healthScore,
+                savingsRatio: metrics.savingsRatio,
+            },
+        });
+    }
+    catch (error) {
+        console.error("❌ AI Chat Controller Error:", error);
+        return res.status(502).json({
+            message: "Failed to generate AI response from Gemini",
             error: error.message || String(error),
         });
     }

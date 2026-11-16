@@ -298,4 +298,73 @@ export const generateNaturalLanguageInsight = async (insightPayload) => {
         return text.trim();
     });
 };
+export const generateAIChatResponse = async (userDataSummary, history, userMessage) => {
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error("Missing Gemini API Key. Please add GEMINI_API_KEY to your .env file.");
+    }
+    const systemInstructionText = `
+You are the AI Financial Copilot for "Invest Planner" — an intelligent, practical, and highly analytical personal finance and investment advisor.
+You have direct, real-time access to the user's authentic financial records, income, expenses, budgets, surplus, and transactions.
+
+USER'S CURRENT FINANCIAL PROFILE:
+${userDataSummary}
+
+RESPONSE GUIDELINES:
+1. Ground your advice and calculations in the user's real numbers above (income, expenses, surplus, budgets, health score).
+2. If the user asks about affordability (e.g., "Can I afford X?", "Should I buy Y?"), compare against their net surplus, monthly expense rate, and savings buffer.
+3. If they ask about saving or reducing spend, highlight their specific top categories and overspent budgets.
+4. If they ask about investments, suggest a balanced allocation (e.g. 50% Equity/Stocks, 30% Mutual Funds/ETFs, 20% Gold/Debt/Emergency buffer) tailored to their investable surplus.
+5. Format your answers cleanly with markdown (use bullet points, short paragraphs, bold key figures). Always use ₹ for rupee figures.
+6. Tone: Empowering, concise, mathematically sound, financially disciplined, and encouraging. Never make up fake transactions if records are empty; tell the user to log transactions if needed.
+`.trim();
+    const validHistory = (history || [])
+        .filter((h) => h.content && typeof h.content === "string" && h.content.trim())
+        .slice(-10);
+    const finalUserMessage = userMessage.trim();
+    return await callGeminiWithFallback("generateAIChatResponse", async (modelName) => {
+        let model;
+        try {
+            model = genAI.getGenerativeModel({
+                model: modelName,
+                systemInstruction: systemInstructionText,
+            });
+        }
+        catch {
+            model = genAI.getGenerativeModel({ model: modelName });
+        }
+        try {
+            const chatContents = validHistory.map((item) => ({
+                role: item.role === "assistant" ? "model" : "user",
+                parts: [{ text: item.content }],
+            }));
+            const chat = model.startChat({
+                history: chatContents,
+                generationConfig: {
+                    maxOutputTokens: 1000,
+                    temperature: 0.7,
+                },
+            });
+            const result = await chat.sendMessage(finalUserMessage);
+            const response = await result.response;
+            const text = response.text();
+            if (text && text.trim())
+                return text.trim();
+        }
+        catch (chatErr) {
+            console.warn("⚠️ Chat session error, falling back to generateContent:", chatErr);
+        }
+        // Fallback single prompt
+        const fullPrompt = `${systemInstructionText}\n\nRecent Conversation History:\n${validHistory
+            .map((h) => `${h.role === "assistant" ? "AI" : "User"}: ${h.content}`)
+            .join("\n")}\n\nUser: ${finalUserMessage}\n\nAI:`;
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+        });
+        const response = await result.response;
+        const text = response.text();
+        if (!text || !text.trim())
+            throw new Error("Received empty response from Gemini");
+        return text.trim();
+    });
+};
 //# sourceMappingURL=geminiService.js.map
